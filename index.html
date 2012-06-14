@@ -1,0 +1,165 @@
+<head>
+<meta name="viewport" content="width=320, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+</head>
+<script src='canvasizer.js'></script>
+<script>
+window.onload = function() {
+  var canvas = canvasizer();
+
+
+  function pump(v) {
+    var _w = v.width;
+    var _h = v.height;
+    var _x = v.x;
+    var _y = v.y;
+
+    var opt = {
+      duration: constant(1000),
+      callback: function() {
+        // console.log(this);
+        // v.width = animate(_w(), 0);
+        // v.height = animate(_h(), 0);
+      } 
+    };
+
+    // v.x = animate(-_w(), 5, opt);
+    v.rotation = animate(0.0, Math.PI * 6, opt);
+    v.width = animate(0, _w(), opt);
+    v.height = animate(0, _h(), opt);
+  }
+
+  var rect = rectangle({
+    x: centerx(canvas),
+    y: centery(canvas),
+    width: constant(300),
+    height: constant(300),
+    layout: layouts.none(),
+    fillStyle: constant('white'),
+    strokeStyle: constant('#888888'),
+    shadowColor: constant('black'),
+    shadowOffsetX: constant(5),
+    shadowOffsetY: constant(5),
+    shadowBlur: constant(20),
+    layout: layouts.stack(),
+    children: [
+      rectangle({ height: constant(50), fillStyle: constant('#000099'), children: [
+        label({ height: constant(20), text: constant('hello, world'), fillStyle: constant('white'), font: constant('0.8em Anonymous') }),
+        label({ height: constant(20), text: constant('this is pretty cool'), fillStyle: constant('yellow'), font: constant('0.8em Anonymous') }),
+      ] }),
+      rectangle({ fillStyle: constant('green') }),
+      // rectangle({ fillStyle: constant('cyan'), children: [
+      //   label({ text: constant('this is a textbox without size') })
+      // ] }),
+    ],
+  });
+
+  canvas.add(rect);
+
+  pump(rect);
+  // pump(rect.first());
+
+  var x = document.createElement('h1');
+  console.log(x);
+
+  function html(options) {
+    var self = view(options);
+    self.ondraw = function(ctx) {
+      ctx.fillRect(0, 0, self.width(), self.height());
+    };
+    return self;
+  }
+
+  rect.add(html({
+    fillStyle: constant('orange'),
+    markup: constant('<h1>Hello, world</h1>')
+  }));
+
+  return;
+
+
+  function listItem(options) {
+    var self = view(options);
+    return self;
+  }
+
+  function list(options) {
+    var self = view(options);
+    self.items = self.items || constant([]);
+    self.ondraw = function(ctx) {
+    };
+    return self;
+  }
+
+  list({
+    x: constant(10),
+    y: constant(10),
+    width: constant(100),
+    height: constant(300),
+  });
+
+  var rect = rectangle({
+    x: constant(0),
+    y: constant(0),
+    width: canvas.width,
+    height: canvas.height,
+    fillStyle: constant('green'),
+    clip: constant(false),
+  });
+
+  var avgfps = canvas.fps;
+
+  var frameRateLabel = label({
+    x: constant(3),
+    y: constant(30),
+    width: constant(100),
+    height: constant(20),
+    text: function() { 
+      avgfps = (avgfps + canvas.fps) / 2;
+      return "frame rate: " + Math.round(avgfps).toString(); 
+    }
+  });
+
+  rect.add(frameRateLabel);
+
+  var innerRect = rectangle({
+    x: centerx(rect),
+    y: centery(rect),
+    width: animate(50, 301, 5000),
+    height: animate(50, 300, 5000),
+    visible: constant(true),
+    strokeStyle: constant('red'),
+    rotation: constant(0.5),
+  });
+
+  function measurementsLabels(target) {
+    var positionLabel = label({
+      x: constant(2),
+      y: constant(10),
+      width: constant(50),
+      height: constant(100),
+      fillStyle: constant('black'),
+      strokeStyle: constant('black'),
+      text: function() { return target.x() + ',' + target.y(); },
+    });
+
+    var sizeLabel = label({
+      x: right(target, -50),
+      y: bottom(target, -2),
+      width: constant(50),
+      height: constant(100),
+      fillStyle: constant('black'),
+      strokeStyle: constant('black'),
+      text: function() { return target.width() + 'x' + target.height(); },
+    });
+
+    return [ positionLabel, sizeLabel ];
+  }
+
+  rect.add(measurementsLabels(rect));
+  innerRect.add(measurementsLabels(innerRect));
+
+  rect.add(innerRect);
+  canvas.add(rect);
+}
+</script>

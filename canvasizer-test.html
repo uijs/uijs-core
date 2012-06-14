@@ -1,0 +1,288 @@
+<head>
+<meta name="viewport" content="width=320, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+</head>
+<script src='canvasizer.js'></script>
+<script>
+window.onload = function() {
+  var canvas = canvasizer({
+    layout: layouts.stack()
+  });
+
+  function test1() {
+
+    function pump(v) {
+      var _w = v.width;
+      var _h = v.height;
+      var _x = v.x;
+      var _y = v.y;
+
+      var opt = {
+        duration: constant(1000),
+        callback: function() {
+          // console.log(this);
+          // v.width = animate(_w(), 0);
+          // v.height = animate(_h(), 0);
+        } 
+      };
+
+      // v.x = animate(-_w(), 5, opt);
+      v.rotation = animate(0.0, Math.PI * 6, opt);
+      v.width = animate(0, _w(), opt);
+      v.height = animate(0, _h(), opt);
+    }
+
+    var background = image({
+      imagesrc: constant('http://www.psdgraphics.com/wp-content/uploads/2009/02/abstract-background.jpg'),
+      width: function() { return canvas.width(); },
+      height: function() { return canvas.height(); },
+    });
+
+    canvas.add(background);
+
+    var rect = rectangle({
+      x: centerx(canvas),
+      y: centery(canvas),
+      width: constant(300),
+      height: constant(200),
+      layout: layouts.none(),
+      fillStyle: constant('white'),
+      strokeStyle: constant('#888888'),
+      shadowColor: constant('black'),
+      shadowOffsetX: constant(5),
+      shadowOffsetY: constant(5),
+      shadowBlur: constant(20),
+      layout: layouts.stack(),
+      alpha: constant(0.5),
+      children: [
+        rectangle({ 
+          height: constant(50), 
+          fillStyle: constant('#000099'), 
+          children: [
+            label({ height: constant(20), text: constant('hello, world'), fillStyle: constant('white'), font: constant('0.8em Anonymous') }),
+            label({ height: constant(20), text: constant('this is pretty cool'), fillStyle: constant('yellow'), font: constant('0.8em Anonymous') }),
+          ] }),
+        rectangle({ fillStyle: constant('green') }),
+        // rectangle({ fillStyle: constant('cyan'), children: [
+        //   label({ text: constant('this is a textbox without size') })
+        // ] }),
+      ],
+    });
+
+    canvas.add(rect);
+
+    rect.add(button({
+      text: constant('click me'),
+      iconsrc: constant('34-coffee.png'),
+    }));
+
+    pump(rect);
+  }
+
+  layouts.dock = function(options) {
+
+    options = options || {};
+    options.spacing = options.spacing || constant(5);
+    options.padding = options.padding || constant(5);
+
+    var dockers = {};
+
+    dockers.top = function(child, region) {
+      var parent = this;
+      child.x = function() { return region.x; };
+      child.y = function() { return region.y; };
+      child.width = function() { return region.width; };
+    };
+
+    dockers.bottom = function(child, region) {
+      var parent = this;
+      child.x = function() { return region.x; };
+      child.y = function() { return region.y + region.height - child.height(); };
+      child.width = function() { return region.width; };
+    };
+
+    dockers.left = function(child, region) {
+      var parent = this;
+      child.x = function() { return region.x; };
+      child.y = function() { return region.y; };
+      child.height = function() { return region.height; }
+    };
+
+    dockers.right = function(child, region) { 
+      var parent = this;
+      child.x = function() { return region.x + region.width - child.width(); }
+      child.y = function() { return region.y; }
+      child.height = function() { return region.height; };
+    };
+
+    dockers.fill = function(child, region) {
+      child.x = function() { return region.x; };
+      child.y = function() { return region.y; };
+      child.width = function() { return region.width; };
+      child.height = function() { return region.height; };
+    }
+
+    return function() {
+      var parent = this;
+
+      parent.unoccupied = function() {
+
+        // start with the entire parent region
+        var curr = {
+          x: options.padding(),
+          y: options.padding(),
+          width: parent.width() - options.padding() * 2,
+          height: parent.height() - options.padding() * 2,
+        };
+
+        Object.keys(parent._children).forEach(function(id) {
+          var child = parent._children[id];
+          var dockStyle = (child.dockStyle && child.dockStyle()) || 'top';
+          switch (dockStyle) {
+            case 'top':
+              curr.y += child.height() + options.spacing();
+              curr.height -= child.height() + options.spacing();
+              break;
+            case 'bottom':
+              curr.height -= child.height() + options.spacing();
+              break;
+            case 'left':
+              curr.x += child.width() + options.spacing();
+              curr.width -= child.width() + options.spacing();
+              break;
+            case 'right':
+              curr.width -= child.width() + options.spacing();
+              break;
+            case 'fill':
+              curr.width -= child.width();
+              curr.height -= child.height();
+              break;
+          }
+        });
+
+        return curr;
+      };
+
+      this.on('before-add-child', function(child) {
+        var dockStyle = (child.dockStyle && child.dockStyle()) || 'top';
+        var region = parent.unoccupied(child._id);        
+        if (region.width === 0 || region.height === 0) {
+          console.warn('no more unoccupied space');
+          return false;
+        }
+        var docker = dockers[dockStyle];
+        if (docker) docker.call(parent, child, region);
+      });
+    };
+  };
+
+  function frame(options) {
+    options = options || {};
+    options.fillStyle = options.fillStyle || constant('white');
+    var self = rectangle(options);
+    self.strokeStyle = constant('black');
+    var _ondraw = self.ondraw;
+    self.ondraw = function(ctx) {
+      _ondraw.call(self, ctx);
+      if (self.unoccupied) {
+        var region = self.unoccupied();
+        ctx.save();
+        var grad = ctx.createLinearGradient(0, 0, 1000, 1000);
+        grad.addColorStop(0.0, 'black');
+        grad.addColorStop(1.0, 'white');
+        ctx.fillStyle = grad;
+        ctx.fillRect(region.x, region.y, region.width, region.height);
+        ctx.restore();
+      }
+    };
+    return self;
+  }
+
+  function testframe(options) {
+    options = options || {};
+    // options.layout = options.layout || layouts.stack();
+    var self = frame(options);
+    return self;
+    // self.add(label({ text: constant("test") }));
+    // var inner = frame();
+    // self.add(inner);
+    // return self;
+  }
+
+  function test_layout_dock() {
+    return testframe({
+      id: constant('test_layout_dock'),
+      strokeStyle: constant('black'),
+      fillStyle: constant('#eeeeee'),
+      height: constant(200),
+      width: constant(500),
+      layout: layouts.dock({padding:constant(10),spacing:constant(3)}),
+      children: [
+        frame({ text: constant('top2'), dockStyle: constant('top'), fillStyle: constant('blue') }),
+        frame({ text: constant('right1'), dockStyle: constant('right'), fillStyle: constant('cyan') }),
+        frame({ text: constant('top1'), dockStyle: constant('top'), fillStyle: constant('red') }),
+        frame({ text: constant('left1'), dockStyle: constant('left'), fillStyle: constant('green') }),
+        // frame({ text: constant('left2'), dockStyle: constant('left'), fillStyle: constant('yellow') }),
+        frame({ text: constant('right2'), dockStyle: constant('right'), fillStyle: constant('purple') }),
+        // frame({ text: constant('bottom1'), dockStyle: constant('bottom'), fillStyle: constant('orange') }),
+        frame({ text: constant('bottom2'), dockStyle: constant('bottom'), fillStyle: constant('orange') }),
+        frame({ text: constant('fill'), dockStyle: constant('fill'), fillStyle: constant('white') }),
+      ]
+    });
+  }
+
+  function fillStyle() { return function() { return this.fillStyle(); } }
+
+  function test_layout_stack() {
+    return testframe({
+      id: constant('test_layout_stack'),
+      layout: layouts.stack(),
+      id: constant('main'),
+      height: constant(360),
+      strokeStyle: constant('black'),
+      children: [
+        rectangle({ text: fillStyle(), fillStyle: constant('red') }),
+        rectangle({ text: fillStyle(), fillStyle: constant('blue') }),
+        rectangle({ text: fillStyle(), fillStyle: constant('green') }),
+        rectangle({ text: fillStyle(), fillStyle: constant('cyan') }),
+        rectangle({ text: fillStyle(), fillStyle: constant('orange') }),
+        rectangle({ text: fillStyle(), fillStyle: constant('magenta') }),
+      ]
+    });
+  }
+
+  canvas.add(test_layout_dock());
+  canvas.add(test_layout_stack());
+
+  function button(options) {
+    options = options || {};
+    options.height = options.height || constant(20);
+    options.radius = options.radius || constant(5);
+    var self = view(options);
+    self.text = self.text || constant("button");
+    self.layout = layouts.dock();
+    self.fillStyle = constant('red');
+    self.add(label({
+      text: self.text,
+      textAlign: constant('center'),
+      textVerticalAlign: constant('middle'),
+    }));
+    self.add(image({
+      imagesrc: self.iconsrc,
+      image: self.icon,
+      width: constant(10),
+      height: constant(10),
+    }));
+    self.on('mousedown', function() {
+      self._prevFillStyle = self.fillStyle;
+      self.fillStyle = constant('black');
+      self.text = constant('clicked!!');
+    });
+    self.on('mouseup', function() {
+      self.fillStyle = self._prevFillStyle;
+    });
+    return self;
+  }
+
+}
+</script>
