@@ -19,6 +19,17 @@ var INTERACTION_EVENTS = [
   'click'
 ];
 
+window.requestAnimationFrame || (window.requestAnimationFrame = 
+  window.webkitRequestAnimationFrame || 
+  window.mozRequestAnimationFrame    || 
+  window.oRequestAnimationFrame      || 
+  window.msRequestAnimationFrame     || 
+  function(callback, element) {
+    return window.setTimeout(function() {
+      callback(+new Date());
+  }, 1000 / 60);
+});
+
 function canvasizer(options) {
   if (document.body.hasChildNodes()) {
     while (document.body.childNodes.length) {
@@ -85,7 +96,7 @@ function canvasizer(options) {
 
   var lastRedraw;
   function redraw() {
-    
+
     // calculate fps
     var now = Date.now();
     var dt = 1000 / (now - lastRedraw);
@@ -94,7 +105,7 @@ function canvasizer(options) {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     main.draw(ctx);
-    webkitRequestAnimationFrame(redraw);
+    window.requestAnimationFrame(redraw);
   }
 
   redraw();
@@ -132,10 +143,6 @@ function view(options) {
   view._view     = true;
   view._children = {};
   view._nextid   = 0;
-
-  if (!('fillStyle' in view) && !('strokeStyle' in view)) {
-    view.strokeStyle = constant('black');
-  }
 
   if (!('textFillStyle' in view) && !('textStrokeStyle' in view)) {
     view.textFillStyle = constant('black');
@@ -238,7 +245,6 @@ function view(options) {
     if (allow) {
       view._children[child._id] = child;
       view.emit('after-add-child', child);
-      view.log(child.width);
     }
   };
 
@@ -397,6 +403,7 @@ function view(options) {
     }
   };
 
+  // returns the first child
   view.first = function() {
     var keys = view._children && Object.keys(view._children);
     if (!keys || keys.length === 0) return null;
@@ -531,9 +538,107 @@ layouts.stack = function(options) {
   };
 };
 
+layouts.dock = function(options) {
+
+  options = options || {};
+  options.spacing = options.spacing || constant(5);
+  options.padding = options.padding || constant(5);
+
+  var dockers = {};
+
+  dockers.top = function(child, region) {
+    var parent = this;
+    child.x = function() { return region.x; };
+    child.y = function() { return region.y; };
+    child.width = function() { return region.width; };
+  };
+
+  dockers.bottom = function(child, region) {
+    var parent = this;
+    child.x = function() { return region.x; };
+    child.y = function() { return region.y + region.height - child.height(); };
+    child.width = function() { return region.width; };
+  };
+
+  dockers.left = function(child, region) {
+    var parent = this;
+    child.x = function() { return region.x; };
+    child.y = function() { return region.y; };
+    child.height = function() { return region.height; }
+  };
+
+  dockers.right = function(child, region) { 
+    var parent = this;
+    child.x = function() { return region.x + region.width - child.width(); }
+    child.y = function() { return region.y; }
+    child.height = function() { return region.height; };
+  };
+
+  dockers.fill = function(child, region) {
+    child.x = function() { return region.x; };
+    child.y = function() { return region.y; };
+    child.width = function() { return region.width; };
+    child.height = function() { return region.height; };
+  }
+
+  return function() {
+    var parent = this;
+
+    parent.unoccupied = function() {
+
+      // start with the entire parent region
+      var curr = {
+        x: options.padding(),
+        y: options.padding(),
+        width: parent.width() - options.padding() * 2,
+        height: parent.height() - options.padding() * 2,
+      };
+
+      Object.keys(parent._children).forEach(function(id) {
+        var child = parent._children[id];
+        var dockStyle = (child.dockStyle && child.dockStyle()) || 'top';
+        switch (dockStyle) {
+          case 'top':
+            curr.y += child.height() + options.spacing();
+            curr.height -= child.height() + options.spacing();
+            break;
+          case 'bottom':
+            curr.height -= child.height() + options.spacing();
+            break;
+          case 'left':
+            curr.x += child.width() + options.spacing();
+            curr.width -= child.width() + options.spacing();
+            break;
+          case 'right':
+            curr.width -= child.width() + options.spacing();
+            break;
+          case 'fill':
+            curr.width -= child.width();
+            curr.height -= child.height();
+            break;
+        }
+      });
+
+      return curr;
+    };
+
+    this.on('before-add-child', function(child) {
+      var dockStyle = (child.dockStyle && child.dockStyle()) || 'top';
+      var region = parent.unoccupied(child._id);        
+      if (region.width === 0 || region.height === 0) {
+        console.warn('no more unoccupied space');
+        return false;
+      }
+      var docker = dockers[dockStyle];
+      if (docker) docker.call(parent, child, region);
+    });
+  };
+};
+
 layouts.none = function() {
   return function() { };
 };
+
 
 // -- animation
 

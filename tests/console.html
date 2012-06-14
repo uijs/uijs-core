@@ -1,0 +1,69 @@
+<head>
+<meta name="viewport" content="width=320, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+</head>
+<script src='../canvasizer.js'></script>
+<script>
+window.onload = function() {
+
+  function terminal(options) {
+    options = options || {};
+    options.bufferSize = options.bufferSize || constant(100);
+
+    var self = view(options);
+    self.fillStyle = constant('black');
+
+    var lines = [];
+    self.writeLine = function(s) {
+      lines.push(s);
+
+      var bufferSize = self.bufferSize && self.bufferSize();
+      if (bufferSize) {
+        while (lines.length > bufferSize) {
+          lines.shift();
+        }
+      }
+    };
+
+    var _ondraw = self.ondraw;
+
+    self.ondraw = function(ctx) {
+      _ondraw.call(self, ctx);
+
+      ctx.save();
+      ctx.font = '1em Courier';
+      ctx.fillStyle = 'white';
+      ctx.textAlign = 'left';
+
+      // calculate how many lines can fit into the terminal
+      var maxLines = self.height() / 16.0;
+      var first = max(0, Math.round(lines.length - maxLines) + 1);
+
+      var y = 0;
+      for (var i = first; i < lines.length; ++i) {
+        var line = lines[i];
+        ctx.fillText(line, 0, y);
+        y += 16;
+      }
+
+      ctx.restore();
+    };
+
+    return self;
+  }
+
+  var canvas = canvasizer({ layout: layouts.dock({ padding: constant(0) }) });
+  var term = terminal({ dockStyle: constant('fill') });
+  canvas.add(term);
+
+  term.writeLine('Hello, how are yoiu?');
+  term.writeLine('Hello, how are yoiu #2?');
+  term.writeLine('Hello, how are yoiu #3?');
+  
+  var i = 0;
+  setInterval(function() {
+    term.writeLine('Line ' + i++);
+  }, 100);
+};
+
+</script>
