@@ -16,7 +16,6 @@ window.onload = function() {
     var self = UI.view(options);
 
     self.font = constant('x-large arial');
-    self.textFillStyle = constant('white');
     self.add(UI.image({
       imagesrc: self.iconsrc,
       dockStyle: constant('left'),
@@ -24,6 +23,7 @@ window.onload = function() {
     }));
 
     self._mousedown = false;
+    self._mousemove = {x:0,y:0};
 
     self.highlighted = function() {
       return self._mousedown;
@@ -37,21 +37,49 @@ window.onload = function() {
       return self.highlighted() ? 'clicked !!' : 'click me';
     };
 
+    self.textFillStyle = function() {
+      return self._mousedown && self._mousemove ? 'black' : 'white';
+
+    };
+
     self.on('touchstart', function() { self._mousedown = true; });
     self.on('touchend', function() { self._mousedown = false; });
+    self.on('touchmove', function(e) {
+      self._mousemove = e;
+    });
     self.on('mousedown', function() { self._mousedown = true; });
     self.on('mouseup', function() { self._mousedown = false; });
+
+    var base_ondraw = self.ondraw;
+    self.ondraw = function(ctx) {
+      var ret = base_ondraw(ctx);
+      ctx.save();
+      ctx.fillStyle = 'black';
+      ctx.fillRect(self._mousemove.x,self._mousemove.y,5,5);
+      ctx.restore();
+      return ret;
+    };
     return self;
   }
 
   var canvas = UI.canvasize({
     layout: UI.layouts.dock(),
     children: [
-      button({
-        id: constant('#clickme'),
+      UI.view({
+        id: constant('#frame'),
+        layout: UI.layouts.dock(),
         dockStyle: constant('top'),
-        iconsrc: constant('34-coffee.png'),
-        text: constant('hello') 
+        strokeStyle: constant('black'),
+        fillStyle: constant('blue'),
+        children: [
+          button({
+            id: constant('#clickme'),
+            dockStyle: constant('right'),
+            width: constant(200),
+            iconsrc: constant('34-coffee.png'),
+            text: constant('hello') 
+          }),
+        ],
       }),
       UI.terminal({
         dockStyle: constant('fill'),
@@ -61,7 +89,7 @@ window.onload = function() {
   });
 
   canvas.INTERACTION_EVENTS.forEach(function(e) {
-    canvas.get('#clickme').on(e, function(at) {
+    canvas.query('#clickme').on(e, function(at) {
       // canvas.log(e + ' ' + at.x + ',' + at.y);
     });
   });
