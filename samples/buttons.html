@@ -8,68 +8,62 @@ window.onload = function() {
   var UI = cui.require('main');
   var constant = UI.util.constant;
 
-  function frame(options) {
-    options = options || {};
-    options.fillStyle = options.fillStyle || constant('white');
-    var self = UI.rectangle(options);
-    self.strokeStyle = constant('black');
-    var _ondraw = self.ondraw;
-    self.ondraw = function(ctx) {
-      _ondraw.call(self, ctx);
-      if (self.unoccupied) {
-        var region = self.unoccupied();
-        ctx.save();
-        var grad = ctx.createLinearGradient(0, 0, 1000, 1000);
-        grad.addColorStop(0.0, 'black');
-        grad.addColorStop(1.0, 'white');
-        ctx.fillStyle = grad;
-        ctx.fillRect(region.x, region.y, region.width, region.height);
-        ctx.restore();
-      }
-    };
-    return self;
-  }
-
   function button(options) {
     options = options || {};
     options.height = options.height || constant(40);
     options.radius = options.radius || constant(5);
     options.layout = UI.layouts.dock();
     var self = UI.view(options);
-    self.text = self.text || constant("button");
+
     self.font = constant('x-large arial');
     self.textFillStyle = constant('white');
-    self.fillStyle = constant('red');
     self.add(UI.image({
       imagesrc: self.iconsrc,
       dockStyle: constant('left'),
       image: self.icon,
     }));
-    self.on('mousedown', function() {
-      self._prevFillStyle = self.fillStyle;
-      self._prevText = self.text;
-      self.fillStyle = constant('darkRed');
-      self.text = constant('clicked!!');
-    });
-    self.on('mouseup', function() {
-      self.fillStyle = self._prevFillStyle;
-      self.text = self._prevText;
-    });
+
+    self._mousedown = false;
+
+    self.highlighted = function() {
+      return self._mousedown;
+    };
+
+    self.fillStyle = function() {
+      return self.highlighted() ? 'darkRed' : 'red';
+    };
+
+    self.text = function() {
+      return self.highlighted() ? 'clicked !!' : 'click me';
+    };
+
+    self.on('touchstart', function() { self._mousedown = true; });
+    self.on('touchend', function() { self._mousedown = false; });
+    self.on('mousedown', function() { self._mousedown = true; });
+    self.on('mouseup', function() { self._mousedown = false; });
     return self;
   }
 
   var canvas = UI.canvasize({
-    layout: UI.layouts.stack(),
+    layout: UI.layouts.dock(),
     children: [
-      frame({
-        children: [
-          button({ 
-            iconsrc: constant('../34-coffee.png'),
-            text: constant('hello') 
-          })
-        ]
-      })
-    ]
+      button({
+        id: constant('#clickme'),
+        dockStyle: constant('top'),
+        iconsrc: constant('34-coffee.png'),
+        text: constant('hello') 
+      }),
+      UI.terminal({
+        dockStyle: constant('fill'),
+        height: constant(100),
+      }),
+    ],
+  });
+
+  canvas.INTERACTION_EVENTS.forEach(function(e) {
+    canvas.get('#clickme').on(e, function(at) {
+      // canvas.log(e + ' ' + at.x + ',' + at.y);
+    });
   });
 };
 
