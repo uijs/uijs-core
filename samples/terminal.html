@@ -1,0 +1,38 @@
+<head>
+<meta name="viewport" content="width=320, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+</head>
+<script src='../out/cui.js'></script>
+<script>
+  window.onload = function() {
+    var UI = cui.require('main');
+    var C = UI.util.constant;
+
+    var canvas = UI.canvasize({
+      layout: UI.layouts.stack(),
+    });
+
+    var main = UI.view({
+      layout: UI.layouts.dock({ padding: C(0), spacing: C(0) }),
+      width: function() { return canvas.width(); },
+      height: function() { return canvas.height(); },
+    })
+
+    var term = UI.terminal({
+      height: function() { return main.height() / 2.0; },
+      dockStyle: C('bottom'),
+    });
+
+    main.add(term);
+
+    main.add(UI.view({
+      strokeStyle: C('black'),
+      dockStyle: C('fill'),
+    }));
+
+    canvas.add(main);
+
+    var i =0;
+    setInterval(function() { term.writeLine('hello, world ' + i++); }, 100);
+  };
+</script>

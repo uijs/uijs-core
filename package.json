@@ -1,0 +1,16 @@
+{
+  "author": "Elad Ben-Israel <elad.benisrael@gmail.com>",
+  "name": "cui",
+  "version": "0.0.1",
+  "repository": {
+    "url": ""
+  },
+  "engines": {
+    "node": "~0.6.10"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "description": "A controvertial canvas based user interface system for mobile apps",
+  "main": "./lib/index"
+}

@@ -1,0 +1,25 @@
+<head>
+<meta name="viewport" content="width=320, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+</head>
+<script src='../out/cui.js'></script>
+<script>
+window.onload = function() {
+  var UI = cui.require('main');
+  var constant = UI.util.constant;
+
+  var canvas = UI.canvasize();
+  canvas.add(UI.view({
+    x: constant(1),
+    y: constant(1),
+    width: function() { return canvas.width() - 2; },
+    height: function() { return canvas.height() - 2; },
+    fillStyle: constant('green'),
+    strokeStyle: constant('black'),
+    text: function() {
+      return 'canvas size: ' + canvas.width() + 'x' + canvas.height();
+    }
+  }));
+  
+}
+</script>

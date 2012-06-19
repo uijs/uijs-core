@@ -2,14 +2,16 @@
 <meta name="viewport" content="width=320, initial-scale=1, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes" />
 </head>
-<script src='../canvasizer.js'></script>
+<script src='../out/cui.js'></script>
 <script>
 window.onload = function() {
+  var UI = cui.require('main');
+  var constant = UI.util.constant;
 
   function frame(options) {
     options = options || {};
     options.fillStyle = options.fillStyle || constant('white');
-    var self = rectangle(options);
+    var self = UI.rectangle(options);
     self.strokeStyle = constant('black');
     var _ondraw = self.ondraw;
     self.ondraw = function(ctx) {
@@ -32,13 +34,13 @@ window.onload = function() {
     options = options || {};
     options.height = options.height || constant(40);
     options.radius = options.radius || constant(5);
-    options.layout = layouts.dock();
-    var self = view(options);
+    options.layout = UI.layouts.dock();
+    var self = UI.view(options);
     self.text = self.text || constant("button");
     self.font = constant('x-large arial');
     self.textFillStyle = constant('white');
     self.fillStyle = constant('red');
-    self.add(image({
+    self.add(UI.image({
       imagesrc: self.iconsrc,
       dockStyle: constant('left'),
       image: self.icon,
@@ -56,8 +58,8 @@ window.onload = function() {
     return self;
   }
 
-  var canvas = canvasizer({
-    layout: layouts.stack(),
+  var canvas = UI.canvasize({
+    layout: UI.layouts.stack(),
     children: [
       frame({
         children: [

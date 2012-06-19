@@ -1,0 +1,22 @@
+<head>
+<meta name="viewport" content="width=320, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes" />
+</head>
+<script src='../canvasizer.js'></script>
+<script>
+window.onload = function() {
+  var canvas = canvasizer({ layout: layouts.dock({ padding: constant(0) }) });
+  var term = terminal({ dockStyle: constant('fill') });
+  canvas.add(term);
+
+  term.writeLine('Hello, how are yoiu?');
+  term.writeLine('Hello, how are yoiu #2?');
+  term.writeLine('Hello, how are yoiu #3?');
+  
+  var i = 0;
+  setInterval(function() {
+    term.writeLine('Line ' + i++);
+  }, 100);
+};
+
+</script>

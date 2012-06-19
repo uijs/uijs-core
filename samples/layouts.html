@@ -2,17 +2,20 @@
 <meta name="viewport" content="width=320, initial-scale=1, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes" />
 </head>
-<script src='../canvasizer.js'></script>
+<script src='../out/cui.js'></script>
 <script>
 window.onload = function() {
-  var canvas = canvasizer({
-    layout: layouts.stack()
+  var UI = cui.require('main');
+  var constant = UI.util.constant;
+
+  var canvas = UI.canvasize({
+    layout: UI.layouts.stack()
   });
 
   function frame(options) {
     options = options || {};
     options.fillStyle = options.fillStyle || constant('white');
-    var self = rectangle(options);
+    var self = UI.rectangle(options);
     self.strokeStyle = constant('black');
     var _ondraw = self.ondraw;
     self.ondraw = function(ctx) {
@@ -31,6 +34,7 @@ window.onload = function() {
     return self;
   }
 
+
   function test_layout_dock() {
     return frame({
       id: constant('test_layout_dock'),
@@ -38,17 +42,17 @@ window.onload = function() {
       fillStyle: constant('#eeeeee'),
       height: constant(200),
       width: constant(500),
-      layout: layouts.dock({padding:constant(10),spacing:constant(3)}),
+      layout: UI.layouts.dock({padding:constant(3),spacing:constant(3)}),
       children: [
-        frame({ text: constant('top2'), dockStyle: constant('top'), fillStyle: constant('blue') }),
-        frame({ text: constant('right1'), dockStyle: constant('right'), fillStyle: constant('cyan') }),
-        frame({ text: constant('top1'), dockStyle: constant('top'), fillStyle: constant('red') }),
-        frame({ text: constant('left1'), dockStyle: constant('left'), fillStyle: constant('green') }),
-        // frame({ text: constant('left2'), dockStyle: constant('left'), fillStyle: constant('yellow') }),
-        frame({ text: constant('right2'), dockStyle: constant('right'), fillStyle: constant('purple') }),
-        // frame({ text: constant('bottom1'), dockStyle: constant('bottom'), fillStyle: constant('orange') }),
+        frame({ text: constant('left1'),   dockStyle: constant('left'), fillStyle: constant('green') }),
+        frame({ text: constant('bottom1'), dockStyle: constant('bottom'), fillStyle: constant('orange') }),
+        frame({ text: constant('right1'),  dockStyle: constant('right'), fillStyle: constant('cyan') }),
+        frame({ text: constant('top1'),    dockStyle: constant('top'), fillStyle: constant('red') }),
+        frame({ text: constant('left2'),   dockStyle: constant('left'), fillStyle: constant('yellow') }),
+        frame({ text: constant('right2'),  dockStyle: constant('right'), fillStyle: constant('purple') }),
         frame({ text: constant('bottom2'), dockStyle: constant('bottom'), fillStyle: constant('orange') }),
-        frame({ text: constant('fill'), dockStyle: constant('fill'), fillStyle: constant('white') }),
+        frame({ text: constant('top2'),    dockStyle: constant('top'), fillStyle: constant('blue') }),
+        frame({ text: constant('fill'),    dockStyle: constant('fill'), fillStyle: constant('white') }),
       ]
     });
   }
@@ -58,7 +62,7 @@ window.onload = function() {
   function test_layout_stack() {
     return frame({
       id: constant('test_layout_stack'),
-      layout: layouts.stack(),
+      layout: UI.layouts.stack({}),
       id: constant('main'),
       height: constant(360),
       strokeStyle: constant('black'),
