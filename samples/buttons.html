@@ -47,6 +47,9 @@ window.onload = function() {
     self.on('touchmove', function(e) {
       self._mousemove = e;
     });
+    self.on('mousemove', function(e) {
+      self._mousemove = e;
+    });
     self.on('mousedown', function() { self._mousedown = true; });
     self.on('mouseup', function() { self._mousedown = false; });
 

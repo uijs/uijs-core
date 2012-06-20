@@ -297,13 +297,9 @@ var INTERACTION_EVENTS = [
   'touchstart',
   'touchmove',
   'touchend',
-  'touchcancel',
   'mousedown',
+  'mousemove',
   'mouseup',
-  // 'click',
-  // 'ongesturestart',
-  // 'ongesturechange',
-  // 'ongestureend',
 ];
 module.exports = function(options) {
   window.requestAnimationFrame || (window.requestAnimationFrame = 
@@ -365,7 +361,11 @@ module.exports = function(options) {
       // works in Firefox
       return { x: e.layerX, y: e.layerY };
     }
-    else {
+    else if (e.touches && e.touches.length > 0) {
+      e = e.touches[0];
+      return { x: e.pageX - canvas.offsetLeft, y: e.pageY - canvas.offsetTop };
+    }
+    else if (e.pageX) {
       // works in safari on ipad/iphone
       return { x: e.pageX - canvas.offsetLeft, y: e.pageY - canvas.offsetTop };
     }
@@ -1031,7 +1031,7 @@ module.exports = function(options) {
   // the event, the event is emitted to the parent (dfs).
   view.interact = function(event, pt, e) {
     // view.log('current:', current_handler ? current_handler.id() : '<none>');
-    if (event === 'touchstart') {
+    if (event === 'touchstart' || event === 'mousedown') {
       current_handler = null;
       var handler = propagate(event, pt, e);
       if (handler) current_handler = handler;
@@ -1051,7 +1051,7 @@ module.exports = function(options) {
         y: pt.y - delta.y,
       };
       var handled = current_handler.emit(event, pt, e);
-      if (event === 'touchend') current_handler = null;
+      if (event === 'touchend' || event === 'mouseup') current_handler = null;
       return handled ? view : null;
     }
     return null;
