@@ -9,22 +9,40 @@
 window.onload = function() {
   var UI = cui.require('main');
   var constant = UI.util.constant;
+  var derive = UI.util.derive;
+  var animate = UI.animation;
 
   var canvas = UI.canvasize({
-    layout: UI.layouts.dock(),
+    layout: UI.layouts.dock({ padding: constant(0) }),
     children: [
       UI.view({
         id: constant('#frame'),
         layout: UI.layouts.dock(),
         dockStyle: constant('top'),
-        strokeStyle: constant('black'),
-        fillStyle: constant('blue'),
+        fillStyle: constant('gray'),
+        height: constant(65),
         children: [
           UI.button({
+            font: constant('x-large Doppio One'),
             id: constant('#clickme'),
-            dockStyle: constant('right'),
-            width: constant(200),
-            text: constant('hello') 
+            dockStyle: constant('top'),
+            height: animate(0, 50),
+            // height: constant(100),
+            text: constant('click me'),
+            shadowOffsetX: constant(5),
+            shadowOffsetY: constant(5),
+            shadowColor: constant('rgba(0,0,0,0.5)'),
+            shadowBlur: constant(5),
+            highlighted: {
+              text: function() {
+                return 'x=' + this.x()
+              },
+              // textFillStyle: constant('red'),
+              shadowOffsetX: constant(0),
+              shadowOffsetY: constant(0),
+              x: function() { return this.base.x() + 5; },
+              y: function() { return this.base.y() + 5; },
+            },
           }),
         ],
       }),

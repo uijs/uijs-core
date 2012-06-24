@@ -294,23 +294,23 @@ cui.module(1, function(/* parent */){
 var layouts = require('./layouts');
 var image = require('./image');
 var constant = require('./util').constant;
-var then = require('./state');
+var derive = require('./util').derive;
 module.exports = function(options) {
     options        = options        || {};
     options.height = options.height || constant(40);
     options.radius = options.radius || constant(4);
     options.layout = options.layout || layouts.dock();
     options.font   = options.font   || constant('x-large Helvetica');
-    options.fillStyle = options.fillStyle || constant('red');
+    // some default styling
+    options.fillStyle = options.fillStyle || constant('#aaaaaa');
+    options.textFillStyle = options.textFillStyle || constant('white');
+    options.highlighted = options.highlighted || {};
+    options.highlighted.fillStyle = options.highlighted.fillStyle || constant('#666666');
     var self = view(options);
-    self.when_highlighted = then({
-      fillStyle: constant('darkRed'),
-      textFillStyle: constant('white')
-    });
-    self.on('touchstart', function() { self.state = constant('highlighted'); });
-    self.on('touchend',   function() { self.state = constant('default');     });
-    self.on('mousedown',  function() { self.state = constant('highlighted'); });
-    self.on('mouseup',    function() { self.state = constant('default');     });
+    self.on('touchstart', function() { self.override = derive(self.highlighted); });
+    self.on('touchend',   function() { self.override = null; });
+    self.on('mousedown',  function() { self.emit('touchstart'); });
+    self.on('mouseup',    function() { self.emit('touchend'); });
     return self;
   }
     }
@@ -460,7 +460,6 @@ exports.rectangle = require('./rectangle');
 exports.view = require('./view');
 exports.terminal = require('./terminal');
 exports.button = require('./button');
-exports.state = require('./state');
     }
   };
 });
@@ -492,11 +491,11 @@ exports.stack = function(options) {
     parent.on('after-add-child', function(child) {
       child.x = options.padding;
       child.width = function() {
-        return parent.width() - options.padding() * 2;
+        return parent.width() - options.padding() * 2 - child.shadowOffsetX();
       };
       var prev = child.prev();
       if (!prev) child.y = options.padding;
-      else child.y = function() { return prev.y() + prev.height() + options.spacing() };
+      else child.y = function() { return prev.y() + prev.height() + options.spacing() + child.shadowOffsetY() };
     });
   };
 };
@@ -517,7 +516,7 @@ exports.dock = function(options) {
     };
     child.width = function() { 
       var region = parent.unoccupied(child);
-      return region.width; 
+      return region.width - child.shadowOffsetX();
     };
   };
   dockers.bottom = function(child) {
@@ -528,11 +527,11 @@ exports.dock = function(options) {
     };
     child.y = function() { 
       var region = parent.unoccupied(child);
-      return region.y + region.height - child.height();
+      return region.y + region.height - child.height() - child.shadowOffsetY();
     };
     child.width = function() { 
       var region = parent.unoccupied(child);
-      return region.width; 
+      return region.width - child.shadowOffsetX();
     };
   };
   dockers.left = function(child) {
@@ -547,14 +546,14 @@ exports.dock = function(options) {
     };
     child.height = function() { 
       var region = parent.unoccupied(child);
-      return region.height; 
+      return region.height - child.shadowOffsetY(); 
     };
   };
   dockers.right = function(child) { 
     var parent = this;
     child.x = function() { 
       var region = parent.unoccupied(child);
-      return region.x + region.width - child.width(); 
+      return region.x + region.width - child.width() - child.shadowOffsetX(); 
     };
     child.y = function() { 
       var region = parent.unoccupied(child);
@@ -562,7 +561,7 @@ exports.dock = function(options) {
     };
     child.height = function() { 
       var region = parent.unoccupied(child);
-      return region.height; 
+      return region.height - child.shadowOffsetY();
     };
   };
   dockers.fill = function(child) {
@@ -577,11 +576,11 @@ exports.dock = function(options) {
     };
     child.width = function() { 
       var region = parent.unoccupied(child);
-      return region.width; 
+      return region.width - child.shadowOffsetX();
     };
     child.height = function() { 
       var region = parent.unoccupied(child);
-      return region.height; 
+      return region.height - child.shadowOffsetY();
     };
   }
   return function() {
@@ -606,22 +605,22 @@ exports.dock = function(options) {
         var dockStyle = (child.dockStyle && child.dockStyle()) || 'top';
         switch (dockStyle) {
           case 'top':
-            curr.y += child.height() + options.spacing();
-            curr.height -= child.height() + options.spacing();
+            curr.y += child.height() + options.spacing() + child.shadowOffsetY();
+            curr.height -= child.height() + child.shadowOffsetY() + options.spacing();
             break;
           case 'bottom':
-            curr.height -= child.height() + options.spacing();
+            curr.height -= child.height() + child.shadowOffsetY() + options.spacing();
             break;
           case 'left':
-            curr.x += child.width() + options.spacing();
-            curr.width -= child.width() + options.spacing();
+            curr.x += child.width() + options.spacing() + child.shadowOffsetX();
+            curr.width -= child.width() + child.shadowOffsetX() + options.spacing();
             break;
           case 'right':
-            curr.width -= child.width() + options.spacing();
+            curr.width -= child.width() + child.shadowOffsetX() + options.spacing();
             break;
           case 'fill':
-            curr.width -= child.width();
-            curr.height -= child.height();
+            curr.width -= child.width() + child.shadowOffsetX();
+            curr.height -= child.height() + child.shadowOffsetY();
             break;
         }
         if (curr.width < 0) curr.width = 0;
@@ -652,25 +651,6 @@ cui.module(1, function(/* parent */){
 module.exports = function(options) {
   return view(options);
 }
-    }
-  };
-});
-cui.module(1, function(/* parent */){
-  return {
-    'id': 'lib/state',
-    'pkg': arguments[0],
-    'wrapper': function(module, exports, global, Buffer,process, require, undefined){
-      module.exports = function(options) {
-  return function() {
-    var child_this = Object.create(this);
-    if (options) {
-      for (var k in options) {
-        child_this[k] = options[k];
-      }
-    }
-    return child_this;
-  };
-};
     }
   };
 });
@@ -742,6 +722,20 @@ exports.right = function(target, delta) { return function() { return target.widt
 exports.bottom = function(target, delta) { return function() { return target.height() + (delta || 0); }; };
 exports.min = function(a, b) { return a < b ? a : b; };
 exports.max = function(a, b) { return a > b ? a : b; };
+// returns a function that creates a new object linked to `this` (`Object.create(this)`).
+// any property specified in `options` (if specified) is assigned to the child object.
+exports.derive = function(options) {
+  return function() {
+    var obj = Object.create(this);
+    obj.base = this;
+    if (options) {
+      for (var k in options) {
+        obj[k] = options[k];
+      }
+    }
+    return obj;
+  };  
+};
     }
   };
 });
@@ -763,7 +757,16 @@ module.exports = function(options) {
   view.clip      = view.clip     || function() { return true; };
   view.layout    = view.layout   || layouts.stack();
   view.alpha     = view.alpha    || null;
-  view.state     = view.state    || function() { return 'default'; };
+  view.override  = view.override || null;
+  
+  view.shadowOffsetX = view.shadowOffsetX || function() { return 0; };
+  view.shadowOffsetY = view.shadowOffsetY || function() { return 0; };
+  view.shadowBlur = view.shadowBlur || function() { return 0; };
+  view.shadowColor = view.shadowColor || function() { return 'black'; };
+  view.textShadowBlur = view.textShadowBlur || function() { return 0; };
+  view.textShadowColor = view.textShadowColor || function() { return 'black' };
+  view.textShadowOffsetX = view.textShadowOffsetX || function() { return 0; };
+  view.textShadowOffsetY = view.textShadowOffsetY || function() { return 0; };
   // rect
   view.radius    = view.radius || constant(0);
   // image
@@ -986,6 +989,10 @@ module.exports = function(options) {
       case 'bottom': top = height - textHeight; break;
     }
     ctx.save();
+    if (self.textShadowBlur) ctx.shadowBlur = self.textShadowBlur();
+    if (self.textShadowColor) ctx.shadowColor = self.textShadowColor();
+    if (self.textShadowOffsetX) ctx.shadowOffsetX = self.textShadowOffsetX();
+    if (self.textShadowOffsetY) ctx.shadowOffsetY = self.textShadowOffsetY();
     if (self.textFillStyle) {
       ctx.fillStyle = self.textFillStyle();
       ctx.fillText(text, left, top, width);
@@ -996,22 +1003,13 @@ module.exports = function(options) {
     }
     ctx.restore();
   };
-  view._self_in_state = function() {
-    var self = this;
-    if (self.state) {
-      var state = self.state();
-      if (state !== 'default') {
-        var state_attr = 'when_' + state;
-        console.log(state_attr);
-        if (self[state_attr]) {
-          self = self[state_attr]();
-        }
-      }
-    }
-    return self;
+  view._self = function() {
+    var override = this.override && this.override();
+    if (override) return override;
+    else return this;
   };
   view.draw = function(ctx) {
-    var self = this;
+    var self = this._self();
     ctx.save();
     if (self.rotation && self.rotation()) {
       var centerX = self.x() + self.width() / 2;
@@ -1023,23 +1021,22 @@ module.exports = function(options) {
     if (self.visible()) {
       ctx.translate(self.x(), self.y());
       ctx.save();
-      var _self = self._self_in_state();
-      if (_self.alpha) ctx.globalAlpha = _self.alpha();
-      if (_self.fillStyle) ctx.fillStyle = _self.fillStyle();
-      if (_self.shadowBlur) ctx.shadowBlur = _self.shadowBlur();
-      if (_self.shadowColor) ctx.shadowColor = _self.shadowColor();
-      if (_self.shadowOffsetX) ctx.shadowOffsetX = _self.shadowOffsetX();
-      if (_self.shadowOffsetY) ctx.shadowOffsetY = _self.shadowOffsetY();
-      if (_self.lineCap) ctx.lineCap = _self.lineCap();
-      if (_self.lineJoin) ctx.lineJoin = _self.lineJoin();
-      if (_self.lineWidth) ctx.lineWidth = _self.lineWidth();
-      if (_self.strokeStyle) ctx.strokeStyle = _self.strokeStyle();
-      if (_self.font) ctx.font = _self.font();
-      if (_self.textAlign) ctx.textAlign = _self.textAlign();
-      if (_self.textBaseline) ctx.textBaseline = _self.textBaseline();
-      if (_self.ondraw) {
-        if (_self.width() > 0 && _self.height() > 0) {
-          _self.ondraw(ctx);
+      if (self.alpha) ctx.globalAlpha = self.alpha();
+      if (self.fillStyle) ctx.fillStyle = self.fillStyle();
+      if (self.shadowBlur) ctx.shadowBlur = self.shadowBlur();
+      if (self.shadowColor) ctx.shadowColor = self.shadowColor();
+      if (self.shadowOffsetX) ctx.shadowOffsetX = self.shadowOffsetX();
+      if (self.shadowOffsetY) ctx.shadowOffsetY = self.shadowOffsetY();
+      if (self.lineCap) ctx.lineCap = self.lineCap();
+      if (self.lineJoin) ctx.lineJoin = self.lineJoin();
+      if (self.lineWidth) ctx.lineWidth = self.lineWidth();
+      if (self.strokeStyle) ctx.strokeStyle = self.strokeStyle();
+      if (self.font) ctx.font = self.font();
+      if (self.textAlign) ctx.textAlign = self.textAlign();
+      if (self.textBaseline) ctx.textBaseline = self.textBaseline();
+      if (self.ondraw) {
+        if (self.width() > 0 && self.height() > 0) {
+          self.ondraw(ctx);
         }
       }
       ctx.restore();
@@ -1167,7 +1164,6 @@ exports.rectangle = require('./rectangle');
 exports.view = require('./view');
 exports.terminal = require('./terminal');
 exports.button = require('./button');
-exports.state = require('./state');
     }
   };
 });

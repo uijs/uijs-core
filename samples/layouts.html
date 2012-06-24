@@ -37,6 +37,10 @@ window.onload = function() {
   function frame(options) {
     options = options || {};
     options.fillStyle = options.fillStyle || nextcolor();
+    options.shadowColor = constant('rgba(0,0,0,0.5)');
+    options.shadowBlur = constant(10);
+    options.shadowOffsetX = constant(5);
+    options.shadowOffsetY = constant(5);
     var self = UI.rectangle(options);
     self.strokeStyle = constant('black');
     var _ondraw = self.ondraw;
