@@ -287,6 +287,37 @@ module.exports = function(from, to, options) {
 });
 cui.module(1, function(/* parent */){
   return {
+    'id': 'lib/button',
+    'pkg': arguments[0],
+    'wrapper': function(module, exports, global, Buffer,process, require, undefined){
+      var view = require('./view');
+var layouts = require('./layouts');
+var image = require('./image');
+var constant = require('./util').constant;
+var then = require('./state');
+module.exports = function(options) {
+    options        = options        || {};
+    options.height = options.height || constant(40);
+    options.radius = options.radius || constant(4);
+    options.layout = options.layout || layouts.dock();
+    options.font   = options.font   || constant('x-large Helvetica');
+    options.fillStyle = options.fillStyle || constant('red');
+    var self = view(options);
+    self.when_highlighted = then({
+      fillStyle: constant('darkRed'),
+      textFillStyle: constant('white')
+    });
+    self.on('touchstart', function() { self.state = constant('highlighted'); });
+    self.on('touchend',   function() { self.state = constant('default');     });
+    self.on('mousedown',  function() { self.state = constant('highlighted'); });
+    self.on('mouseup',    function() { self.state = constant('default');     });
+    return self;
+  }
+    }
+  };
+});
+cui.module(1, function(/* parent */){
+  return {
     'id': 'lib/canvasize',
     'pkg': arguments[0],
     'wrapper': function(module, exports, global, Buffer,process, require, undefined){
@@ -428,6 +459,8 @@ exports.layouts = require('./layouts');
 exports.rectangle = require('./rectangle');
 exports.view = require('./view');
 exports.terminal = require('./terminal');
+exports.button = require('./button');
+exports.state = require('./state');
     }
   };
 });
@@ -624,6 +657,25 @@ module.exports = function(options) {
 });
 cui.module(1, function(/* parent */){
   return {
+    'id': 'lib/state',
+    'pkg': arguments[0],
+    'wrapper': function(module, exports, global, Buffer,process, require, undefined){
+      module.exports = function(options) {
+  return function() {
+    var child_this = Object.create(this);
+    if (options) {
+      for (var k in options) {
+        child_this[k] = options[k];
+      }
+    }
+    return child_this;
+  };
+};
+    }
+  };
+});
+cui.module(1, function(/* parent */){
+  return {
     'id': 'lib/terminal',
     'pkg': arguments[0],
     'wrapper': function(module, exports, global, Buffer,process, require, undefined){
@@ -707,10 +759,11 @@ module.exports = function(options) {
   view.width     = view.width    || function() { return 100; };
   view.height    = view.height   || function() { return 50; };
   view.rotation  = view.rotation || function() { return 0; };
-  view.visible   = view.visible  || function() { return true; }
-  view.clip      = view.clip     || function() { return true; }
+  view.visible   = view.visible  || function() { return true; };
+  view.clip      = view.clip     || function() { return true; };
   view.layout    = view.layout   || layouts.stack();
   view.alpha     = view.alpha    || null;
+  view.state     = view.state    || function() { return 'default'; };
   // rect
   view.radius    = view.radius || constant(0);
   // image
@@ -723,7 +776,7 @@ module.exports = function(options) {
   view.textAlign         = view.textAlign || constant('center');
   view.textVerticalAlign = view.textVerticalAlign || constant('middle');
   view._id       = '<unattached>';
-  view._view     = true;
+  view._is_view  = true;
   view._children = {};
   view._nextid   = 0;
   if (!('textFillStyle' in view) && !('textStrokeStyle' in view)) {
@@ -736,11 +789,12 @@ module.exports = function(options) {
   }
   // -- log
   view.log = function() {
-    var root = view.root();
+    var self = this;
+    var root = self.root();
     var term = root.get('#terminal');
     if (!term) return;
     var args = [];
-    var id = (view.id && view.id()) || view._id;
+    var id = (self.id && self.id()) || self._id;
     args.push('[' + id + ']');
     for (var i = 0; i < arguments.length; ++i) {
       args.push(arguments[i]);
@@ -750,6 +804,7 @@ module.exports = function(options) {
   // -- event emitter
   var _subscriptions = {};
   view.emit = function(event) {
+    var self = this;
     var handlers = _subscriptions[event];
     var handled;
     if (handlers) {
@@ -758,7 +813,7 @@ module.exports = function(options) {
         args.push(arguments[i]);
       }
       handlers.forEach(function(fn) {
-        var ret = fn.apply(view, args);
+        var ret = fn.apply(self, args);
         if (typeof ret === 'undefined' || ret === true) handled = true;
         if (ret === false) handled = false;
       });
@@ -766,6 +821,7 @@ module.exports = function(options) {
     return handled;
   };
   view.on = function(event, handler) {
+    var self = this;
     if (!_subscriptions) return;
     var handlers = _subscriptions[event];
     if (!handlers) handlers = _subscriptions[event] = [];
@@ -778,64 +834,69 @@ module.exports = function(options) {
   // -- children/parents
   // returns the root of the view hierarchy
   view.root = function() {
-    if (!view.parent) return view;
-    return view.parent.root();
+    var self = this;
+    if (!self.parent) return self;
+    return self.parent.root();
   };
   // adds a child to the end of the children's stack.
   view.add = function(child) {
+    var self = this;
     if (Array.isArray(child)) {
       return child.forEach(function(c) {
-        view.add(c);
+        self.add(c);
       });
     }
-    if (!child._view) throw new Error('can only add views as children to a view');
-    var previd = view._nextid;
-    child._id = view._nextid++;
-    child.parent = view;
+    if (!child._is_view) throw new Error('can only add views as children to a view');
+    var previd = self._nextid;
+    child._id = self._nextid++;
+    child.parent = self;
     child.bringToTop = function() {
-      view.remove(child);
-      view.add(child);
+      self.remove(child);
+      self.add(child);
     };
     child.remove = function() {
-      view.remove(child);
+      self.remove(child);
     };
     child.prev = function() {
       var prev = null;
       
-      for (var id in view._children) {
+      for (var id in self._children) {
         if (id == child._id) {
-          return view._children[prev];
+          return self._children[prev];
         }
         prev = id;
       }
       return null;
     };
     var allow = true;
-    var ret = view.emit('before-add-child', child);
+    var ret = self.emit('before-add-child', child);
     if (typeof ret === 'undefined') allow = true;
     else allow = !!ret;
     if (allow) {
-      view._children[child._id] = child;
-      view.emit('after-add-child', child);
+      self._children[child._id] = child;
+      self.emit('after-add-child', child);
     }
   };
   // removes a child
   view.remove = function(child) {
-    delete view._children[child._id];
+    var self = this;
+    delete self._children[child._id];
     child.parent = null;
     return child;
   };
   // removes all children
   view.empty = function() {
-    for (var k in view._children) {
-      view.remove(view._children[k]);
+    var self = this;
+    for (var k in self._children) {
+      self.remove(self._children[k]);
     }
   };
   // retrieve a child by it's `id()` property. children without
   // this property cannot be retrieved using this function.
   view.get = function(id) {
-    for (var k in view._children) {
-      var child = view._children[k];
+    var self = this;
+    for (var k in self._children) {
+      var child = self._children[k];
       if (child.id && child.id() === id) {
         return child;
       }
@@ -844,10 +905,11 @@ module.exports = function(options) {
   };
   // retrieve a child from the entire view tree by id.
   view.query = function(id) {
-    var child = view.get(id);
+    var self = this;
+    var child = self.get(id);
     if (!child) {
-      for (var k in view._children) {
-        var found = view._children[k].query(id);
+      for (var k in self._children) {
+        var found = self._children[k].query(id);
         if (found) {
           child = found;
           break;
@@ -859,30 +921,33 @@ module.exports = function(options) {
   // -- drawing
   // default draw for view is basically to draw a rectangle
   view.ondraw = function(ctx) {
-    var radius = view.radius();
+    var self = this;
+    var radius = self.radius();
     ctx.beginPath();
     ctx.moveTo(0 + radius, 0);
-    ctx.lineTo(0 + view.width() - radius, 0);
-    ctx.quadraticCurveTo(0 + view.width(), 0, 0 + view.width(), 0 + radius);
-    ctx.lineTo(0 + view.width(), 0 + view.height() - radius);
-    ctx.quadraticCurveTo(0 + view.width(), 0 + view.height(), 0 + view.width() - radius, 0 + view.height());
-    ctx.lineTo(0 + radius, 0 + view.height());
-    ctx.quadraticCurveTo(0, 0 + view.height(), 0, 0 + view.height() - radius);
+    ctx.lineTo(0 + self.width() - radius, 0);
+    ctx.quadraticCurveTo(0 + self.width(), 0, 0 + self.width(), 0 + radius);
+    ctx.lineTo(0 + self.width(), 0 + self.height() - radius);
+    ctx.quadraticCurveTo(0 + self.width(), 0 + self.height(), 0 + self.width() - radius, 0 + self.height());
+    ctx.lineTo(0 + radius, 0 + self.height());
+    ctx.quadraticCurveTo(0, 0 + self.height(), 0, 0 + self.height() - radius);
     ctx.lineTo(0, 0 + radius);
     ctx.quadraticCurveTo(0, 0, 0 + radius, 0);
     ctx.closePath();
     
-    view.drawFill(ctx);
-    view.drawImage(ctx);
-    view.drawBorder(ctx);
-    view.drawText(ctx);
+    self.drawFill(ctx);
+    self.drawImage(ctx);
+    self.drawBorder(ctx);
+    self.drawText(ctx);
   };
   view.drawFill = function(ctx) {
-    if (!view.fillStyle) return;
+    var self = this;
+    if (!self.fillStyle) return;
     ctx.fill();
   };
   view.drawBorder = function(ctx) {
-    if (!view.strokeStyle) return;
+    var self = this;
+    if (!self.strokeStyle) return;
     // we don't want shadow the border
     ctx.save();
     ctx.shadowOffsetY = 0;
@@ -892,16 +957,18 @@ module.exports = function(options) {
     ctx.restore();
   };
   view.drawImage = function(ctx) {
-    if (view.image) {
-      ctx.drawImage(view.image, 0, 0, view.width(), view.height());
+    var self = this;
+    if (self.image) {
+      ctx.drawImage(self.image, 0, 0, self.width(), self.height());
     }
   }
   view.drawText = function(ctx) {
-    if (!view.text || !view.text() || view.text().length === 0) return;
-    if (!view.textFillStyle && !view.textStrokeStyle) return;
-    var text = view.text();
-    var width = view.width();
-    var height = view.height();
+    var self = this;
+    if (!self.text || !self.text() || self.text().length === 0) return;
+    if (!self.textFillStyle && !self.textStrokeStyle) return;
+    var text = self.text();
+    var width = self.width();
+    var height = self.height();
     var top = 0;
     var left = 0;
     // http://stackoverflow.com/questions/1134586/how-can-you-find-the-height-of-text-on-an-html-canvas
@@ -913,66 +980,80 @@ module.exports = function(options) {
       case 'right': left = width; break;
       case 'center': left = width / 2; break;
     }
-    switch (view.textVerticalAlign()) {
+    switch (self.textVerticalAlign()) {
       case 'top': top = 0; break;
       case 'middle': top = height / 2 - textHeight / 2; break;
       case 'bottom': top = height - textHeight; break;
     }
-    // ctx.strokeRect(0, 0, width, height);
-    // ctx.strokeRect(0, top, width, textHeight);
     ctx.save();
-    if (view.textFillStyle) {
-      ctx.fillStyle = view.textFillStyle();
+    if (self.textFillStyle) {
+      ctx.fillStyle = self.textFillStyle();
       ctx.fillText(text, left, top, width);
     }
-    if (view.textStrokeStyle) {
-      ctx.strokeStyle = view.textStrokeStyle();
+    if (self.textStrokeStyle) {
+      ctx.strokeStyle = self.textStrokeStyle();
       ctx.strokeText(text, left, top, width);
     }
     ctx.restore();
   };
+  view._self_in_state = function() {
+    var self = this;
+    if (self.state) {
+      var state = self.state();
+      if (state !== 'default') {
+        var state_attr = 'when_' + state;
+        console.log(state_attr);
+        if (self[state_attr]) {
+          self = self[state_attr]();
+        }
+      }
+    }
+    return self;
+  };
   view.draw = function(ctx) {
+    var self = this;
     ctx.save();
-    if (view.rotation && view.rotation()) {
-      var centerX = view.x() + view.width() / 2;
-      var centerY = view.y() + view.height() / 2;
+    if (self.rotation && self.rotation()) {
+      var centerX = self.x() + self.width() / 2;
+      var centerY = self.y() + self.height() / 2;
       ctx.translate(centerX, centerY);
-      ctx.rotate(view.rotation());
+      ctx.rotate(self.rotation());
       ctx.translate(-centerX, -centerY);
     }
-    if (view.visible()) {
-      ctx.translate(view.x(), view.y());
+    if (self.visible()) {
+      ctx.translate(self.x(), self.y());
       ctx.save();
-      if (view.alpha) ctx.globalAlpha = view.alpha();
-      if (view.fillStyle) ctx.fillStyle = view.fillStyle();
-      if (view.shadowBlur) ctx.shadowBlur = view.shadowBlur();
-      if (view.shadowColor) ctx.shadowColor = view.shadowColor();
-      if (view.shadowOffsetX) ctx.shadowOffsetX = view.shadowOffsetX();
-      if (view.shadowOffsetY) ctx.shadowOffsetY = view.shadowOffsetY();
-      if (view.lineCap) ctx.lineCap = view.lineCap();
-      if (view.lineJoin) ctx.lineJoin = view.lineJoin();
-      if (view.lineWidth) ctx.lineWidth = view.lineWidth();
-      if (view.strokeStyle) ctx.strokeStyle = view.strokeStyle();
-      if (view.font) ctx.font = view.font();
-      if (view.textAlign) ctx.textAlign = view.textAlign();
-      if (view.textBaseline) ctx.textBaseline = view.textBaseline();
-      if (view.ondraw) {
-        if (view.width() > 0 && view.height() > 0) {
-          view.ondraw(ctx);
+      var _self = self._self_in_state();
+      if (_self.alpha) ctx.globalAlpha = _self.alpha();
+      if (_self.fillStyle) ctx.fillStyle = _self.fillStyle();
+      if (_self.shadowBlur) ctx.shadowBlur = _self.shadowBlur();
+      if (_self.shadowColor) ctx.shadowColor = _self.shadowColor();
+      if (_self.shadowOffsetX) ctx.shadowOffsetX = _self.shadowOffsetX();
+      if (_self.shadowOffsetY) ctx.shadowOffsetY = _self.shadowOffsetY();
+      if (_self.lineCap) ctx.lineCap = _self.lineCap();
+      if (_self.lineJoin) ctx.lineJoin = _self.lineJoin();
+      if (_self.lineWidth) ctx.lineWidth = _self.lineWidth();
+      if (_self.strokeStyle) ctx.strokeStyle = _self.strokeStyle();
+      if (_self.font) ctx.font = _self.font();
+      if (_self.textAlign) ctx.textAlign = _self.textAlign();
+      if (_self.textBaseline) ctx.textBaseline = _self.textBaseline();
+      if (_self.ondraw) {
+        if (_self.width() > 0 && _self.height() > 0) {
+          _self.ondraw(ctx);
         }
       }
       ctx.restore();
-      if (view.clip()) {
+      if (self.clip()) {
         ctx.beginPath();
         ctx.moveTo(0, 0);
-        ctx.lineTo(view.width(), 0);
-        ctx.lineTo(view.width(), view.height());
-        ctx.lineTo(0, view.height());
+        ctx.lineTo(self.width(), 0);
+        ctx.lineTo(self.width(), self.height());
+        ctx.lineTo(0, self.height());
         ctx.closePath();
         ctx.clip();
       }
-      Object.keys(view._children).forEach(function(key) {
-        var child = view._children[key];
+      Object.keys(self._children).forEach(function(key) {
+        var child = self._children[key];
         child.draw.call(child, ctx);
       });
       ctx.restore();
@@ -980,9 +1061,10 @@ module.exports = function(options) {
   };
   // returns the first child
   view.first = function() {
-    var keys = view._children && Object.keys(view._children);
+    var self = this;
+    var keys = self._children && Object.keys(self._children);
     if (!keys || keys.length === 0) return null;
-    return view._children[keys[0]];
+    return self._children[keys[0]];
   };
   // if `children` is defined in construction, add them and
   // replace with a property so we can treat children as an array
@@ -993,6 +1075,7 @@ module.exports = function(options) {
   // -- interactivity
   // returns {x,y} in child coordinates
   view.hittest = function(child, pt) {
+    var self = this;
     if (pt.x >= child.x() &&
         pt.y >= child.y() &&
         pt.x <= child.x() + child.width() &&
@@ -1006,32 +1089,33 @@ module.exports = function(options) {
     return null;
   };
   var current_handler = null;
-  function propagate(event, pt, e) {
+  view._propagate = function(event, pt, e) {
+    var self = this;
     var handler = null;
-    for (var id in view._children) {
-      var child = view._children[id];
-      var child_pt = view.hittest(child, pt);
+    for (var id in self._children) {
+      var child = self._children[id];
+      var child_pt = self.hittest(child, pt);
       if (child_pt) {
         var child_handler = child.interact(event, child_pt, e);
         if (child_handler) handler = child_handler;
       }
     }
     if (!handler) {
-      if (view.emit(event, pt, e)) {
-        handler = view;
+      if (self.emit(event, pt, e)) {
+        handler = self;
       }
     }
-    if (handler) view.log(event, 'handled by', handler.id());
+    if (handler) self.log(event, 'handled by', handler.id());
     return handler;
   }
   // called with a mouse/touch event and relative coords
   // and propogates to child views. if child view did not handle
   // the event, the event is emitted to the parent (dfs).
   view.interact = function(event, pt, e) {
-    // view.log('current:', current_handler ? current_handler.id() : '<none>');
+    var self = this;
     if (event === 'touchstart' || event === 'mousedown') {
       current_handler = null;
-      var handler = propagate(event, pt, e);
+      var handler = self._propagate(event, pt, e);
       if (handler) current_handler = handler;
       return current_handler;
     }
@@ -1039,7 +1123,7 @@ module.exports = function(options) {
     if (current_handler) {
       // convert pt to current handler coordinates.
       var current_handler_screen = current_handler.screen();
-      var this_screen = view.screen();
+      var this_screen = self.screen();
       var delta = {
         x: current_handler_screen.x - this_screen.x,
         y: current_handler_screen.y - this_screen.y,
@@ -1050,16 +1134,17 @@ module.exports = function(options) {
       };
       var handled = current_handler.emit(event, pt, e);
       if (event === 'touchend' || event === 'mouseup') current_handler = null;
-      return handled ? view : null;
+      return handled ? self : null;
     }
     return null;
   };
   // returns the screen coordinates of this view
   view.screen = function() {
-    var pscreen = view.parent ? view.parent.screen() : { x: 0, y: 0 };
+    var self = this;
+    var pscreen = self.parent ? self.parent.screen() : { x: 0, y: 0 };
     return {
-      x: pscreen.x + view.x(),
-      y: pscreen.y + view.y()
+      x: pscreen.x + self.x(),
+      y: pscreen.y + self.y()
     };
   };
   return view;
@@ -1081,6 +1166,8 @@ exports.layouts = require('./layouts');
 exports.rectangle = require('./rectangle');
 exports.view = require('./view');
 exports.terminal = require('./terminal');
+exports.button = require('./button');
+exports.state = require('./state');
     }
   };
 });
