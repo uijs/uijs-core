@@ -302,16 +302,14 @@ var INTERACTION_EVENTS = [
   'mouseup',
 ];
 module.exports = function(options) {
-  window.requestAnimationFrame || (window.requestAnimationFrame = 
+  window.requestAnimationFrame || (
+    window.requestAnimationFrame = 
     window.webkitRequestAnimationFrame || 
     window.mozRequestAnimationFrame    || 
     window.oRequestAnimationFrame      || 
     window.msRequestAnimationFrame     || 
-    function(callback, element) {
-      return window.setTimeout(function() {
-        callback(+new Date());
-    }, 1000 / 60);
-  });
+    function(cb) { setTimeout(cb, 1000/60); }
+  );
   window.devicePixelRatio || (window.devicePixelRatio = 1);
   // window.devicePixelRatio = 1;
   console.log('devicePixelRatio:', window.devicePixelRatio);
@@ -326,7 +324,6 @@ module.exports = function(options) {
   canvas.style.background = 'white';
   document.body.style.padding = '0px';
   document.body.style.margin = '0px';
-  // document.body.style['min-height'] = '416px'; // this is the iphone screen height without the bottom safari bar
   window.onresize = function() {
     // http://joubert.posterous.com/crisp-html-5-canvas-text-on-mobile-phones-and
     canvas.width = window.innerWidth * window.devicePixelRatio;
@@ -380,7 +377,8 @@ module.exports = function(options) {
     };
   });
   function redraw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    //TODO: since the canvas fills the screen we don't really need this?
+    // ctx.clearRect(0, 0, canvas.width, canvas.height);
     main.draw(ctx);
     window.requestAnimationFrame(redraw);
   }
