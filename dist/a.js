@@ -287,6 +287,22 @@ module.exports = function(from, to, options) {
 });
 cui.module(1, function(/* parent */){
   return {
+    'id': 'lib/app',
+    'pkg': arguments[0],
+    'wrapper': function(module, exports, global, Buffer,process, require, undefined){
+      var view = require('./view');
+var defaults = require('./util').defaults;
+var constant = require('./util').constant;
+module.exports = function(options) {
+  return view(defaults(options, {
+    dockStyle: constant('fill'),
+  }));
+}
+    }
+  };
+});
+cui.module(1, function(/* parent */){
+  return {
     'id': 'lib/button',
     'pkg': arguments[0],
     'wrapper': function(module, exports, global, Buffer,process, require, undefined){
@@ -295,23 +311,38 @@ var layouts = require('./layouts');
 var image = require('./image');
 var constant = require('./util').constant;
 var derive = require('./util').derive;
+var valueof = require('./util').valueof;
+var defaults = require('./util').defaults;
 module.exports = function(options) {
-    options        = options        || {};
-    options.height = options.height || constant(40);
-    options.radius = options.radius || constant(4);
-    options.layout = options.layout || layouts.dock();
-    options.font   = options.font   || constant('x-large Helvetica');
-    // some default styling
-    options.fillStyle = options.fillStyle || constant('#aaaaaa');
-    options.textFillStyle = options.textFillStyle || constant('white');
-    options.highlighted = options.highlighted || {};
-    options.highlighted.fillStyle = options.highlighted.fillStyle || constant('#666666');
-    var self = view(options);
-    self.on('touchstart', function() { self.override = derive(self.highlighted); });
-    self.on('touchend',   function() { self.override = null; });
-    self.on('mousedown',  function() { self.emit('touchstart'); });
-    self.on('mouseup',    function() { self.emit('touchend'); });
-    return self;
+  options = defaults(options, {
+    radius: constant(10),
+    layouts: layouts.dock(),
+    font: constant('xx-large Helvetica'),
+    text: constant('button'),
+    width: constant(400),
+    height: constant(80),
+    fillStyle: constant('white'),
+    strokeStyle: constant('black'),
+    lineWidth: constant(3),
+    textFillStyle: constant('black'),
+    shadowColor: constant('rgba(0,0,0,0.5)'),
+    shadowBlur: constant(15),
+  });
+  // highlighted state
+  options.highlighted = defaults(options.highlighted, {
+    fillStyle: constant('#666666'),
+  });
+  var self = view(options);
+  self.on('touchstart', function(c) { self.override = derive(self.highlighted); });
+  self.on('touchend',   function(c) { self.override = null; });
+  self.on('mousedown',  function(c) { self.emit('touchstart', c); });
+  self.on('mouseup',    function(c) { self.emit('touchend', c); });
+  self.on('touchend', function(c) {
+    if (c.x < 0 || c.x > self.width()) return;
+    if (c.y < 0 || c.y > self.height()) return;
+    return self.queue('click', c);
+  });
+  return self;
   }
     }
   };
@@ -333,6 +364,7 @@ var INTERACTION_EVENTS = [
   'mouseup',
 ];
 module.exports = function(options) {
+  options = options || {};
   window.requestAnimationFrame || (
     window.requestAnimationFrame = 
     window.webkitRequestAnimationFrame || 
@@ -342,33 +374,41 @@ module.exports = function(options) {
     function(cb) { setTimeout(cb, 1000/60); }
   );
   window.devicePixelRatio || (window.devicePixelRatio = 1);
-  // window.devicePixelRatio = 1;
-  console.log('devicePixelRatio:', window.devicePixelRatio);
-  if (document.body.hasChildNodes()) {
-    while (document.body.childNodes.length) {
-      document.body.removeChild(document.body.firstChild);
-    }
+  console.log('devicePixelRatio is', window.devicePixelRatio);
+  var canvas = null;
+  if (options.element) {
+    canvas = options.element;
+    canvas.width = parseInt(canvas.style.width) * window.devicePixelRatio;
+    canvas.height = parseInt(canvas.style.height) * window.devicePixelRatio;
   }
-  var canvas = document.createElement('canvas');
-  document.body.appendChild(canvas);
-  document.body.style.background = 'white';
-  canvas.style.background = 'white';
-  document.body.style.padding = '0px';
-  document.body.style.margin = '0px';
-  window.onresize = function() {
-    // http://joubert.posterous.com/crisp-html-5-canvas-text-on-mobile-phones-and
-    canvas.width = window.innerWidth * window.devicePixelRatio;
-    canvas.height = window.innerHeight * window.devicePixelRatio;
-    canvas.style.width = window.innerWidth;
-    canvas.style.height = window.innerHeight;
-    canvas.getContext('2d').scale(window.devicePixelRatio, window.devicePixelRatio);
-  };
-  document.body.onorientationchange = window.onresize;
-  setTimeout(function() { 
-    window.scrollTo(0, 0);
+  else {
+    if (document.body.hasChildNodes()) {
+      while (document.body.childNodes.length) {
+        document.body.removeChild(document.body.firstChild);
+      }
+    }
+    document.body.style.background = 'white';
+    document.body.style.padding = '0px';
+    document.body.style.margin = '0px';
+    canvas = document.createElement('canvas');
+    canvas.style.background = 'green';
+    document.body.appendChild(canvas);
+    window.onresize = function() {
+      // http://joubert.posterous.com/crisp-html-5-canvas-text-on-mobile-phones-and
+      canvas.width = window.innerWidth * window.devicePixelRatio;
+      canvas.height = window.innerHeight * window.devicePixelRatio;
+      canvas.style.width = window.innerWidth;
+      canvas.style.height = window.innerHeight;
+      var c = canvas.getContext('2d');
+      c.scale(window.devicePixelRatio, window.devicePixelRatio);
+    };
+    document.body.onorientationchange = window.onresize;
+    setTimeout(function() { 
+      window.scrollTo(0, 0);
+      window.onresize();
+    }, 0);
     window.onresize();
-  }, 0);
-  window.onresize();
+  }
   var ctx = canvas.getContext('2d');
   options = options || {};
   options.id = options.id || constant('canvas');
@@ -376,22 +416,22 @@ module.exports = function(options) {
   options.y = options.y || constant(0);
   options.width = options.width || function() { return canvas.width / window.devicePixelRatio; };
   options.height = options.height || function() { return canvas.height / window.devicePixelRatio; };
-  options.layout = options.layout || layouts.none();
+  options.layout = options.layout || layouts.dock({ stretch: true });
   var main = view(options);
   // get the coordinates for a mouse or touch event
   // http://www.nogginbox.co.uk/blog/canvas-and-multi-touch
   function getCoords(e) {
-    if (e.offsetX) {
+    if (e.touches && e.touches.length > 0) {
+      e = e.touches[0];
+      return { x: e.pageX - canvas.offsetLeft, y: e.pageY - canvas.offsetTop };
+    }
+    else if (e.offsetX) {
       // works in chrome / safari (except on ipad/iphone)
       return { x: e.offsetX, y: e.offsetY };
     }
     else if (e.layerX) {
       // works in Firefox
       return { x: e.layerX, y: e.layerY };
-    }
-    else if (e.touches && e.touches.length > 0) {
-      e = e.touches[0];
-      return { x: e.pageX - canvas.offsetLeft, y: e.pageY - canvas.offsetTop };
     }
     else if (e.pageX) {
       // works in safari on ipad/iphone
@@ -403,13 +443,17 @@ module.exports = function(options) {
     canvas['on' + name] = function(e) {
       e.preventDefault();
       var coords = (name !== 'touchend') ? getCoords(e) : getCoords(e.changedTouches[0]);
+      // coords.x *= window.devicePixelRatio;
+      // coords.y *= window.devicePixelRatio;
       main.log('on' + name, coords.x + ',' + coords.y);
       main.interact(name, coords, e);
     };
   });
   function redraw() {
     //TODO: since the canvas fills the screen we don't really need this?
-    // ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (main.alpha && main.alpha() < 1.0) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
     main.draw(ctx);
     window.requestAnimationFrame(redraw);
   }
@@ -428,17 +472,21 @@ cui.module(1, function(/* parent */){
       var view = require('./view');
 module.exports = function(options) {
   var self = view(options);
+  var base = {
+    width: self.width,
+    height: self.height,
+  };
   self.width = function() {
     if (self.image) {
       return self.image.width;
     }
-    else return 10;
+    else return base.width.call(self);
   };
   self.height = function() {
     if (self.image) {
       return self.image.height;
     }
-    else return 10;
+    else return base.height.call(self);
   };
   return self;
 };
@@ -460,6 +508,7 @@ exports.rectangle = require('./rectangle');
 exports.view = require('./view');
 exports.terminal = require('./terminal');
 exports.button = require('./button');
+exports.app = require('./app');
     }
   };
 });
@@ -482,109 +531,96 @@ cui.module(1, function(/* parent */){
     'wrapper': function(module, exports, global, Buffer,process, require, undefined){
       var constant = require('./util').constant;
 var max = require('./util').max;
+var defaults = require('./util').defaults;
 exports.stack = function(options) {
   options = options || {};
-  options.padding = options.padding || constant(5);
-  options.spacing = options.spacing || constant(5);
+  options.padding = options.padding || constant(0);
+  options.spacing = options.spacing || constant(0);
+  options.stretch = options.stretch || constant(false);
   return function() {
     var parent = this;
     parent.on('after-add-child', function(child) {
       child.x = options.padding;
-      child.width = function() {
-        return parent.width() - options.padding() * 2 - child.shadowOffsetX();
-      };
+      if (options.stretch()) {
+        child.width = function() {
+          return parent.width() - options.padding() * 2 - child.shadowOffsetX();
+        };
+      }
       var prev = child.prev();
-      if (!prev) child.y = options.padding;
-      else child.y = function() { return prev.y() + prev.height() + options.spacing() + child.shadowOffsetY() };
+      if (!prev) {
+        child.y = options.padding;
+      }
+      else {
+        child.y = function() { 
+          return prev.y() + prev.height() + options.spacing() + child.shadowOffsetY();
+        };
+      }
+      // center
+      child.x = function() {
+        return parent.width() / 2 - this.width() / 2;
+      };
     });
   };
 };
 exports.dock = function(options) {
   options = options || {};
-  options.spacing = options.spacing || constant(5);
-  options.padding = options.padding || constant(5);
-  var dockers = {};
-  dockers.top = function(child) {
-    var parent = this;
-    child.x = function() { 
-      var region = parent.unoccupied(child);
-      return region.x; 
-    };
-    child.y = function() { 
-      var region = parent.unoccupied(child);
-      return region.y; 
-    };
-    child.width = function() { 
-      var region = parent.unoccupied(child);
-      return region.width - child.shadowOffsetX();
-    };
-  };
-  dockers.bottom = function(child) {
-    var parent = this;
-    child.x = function() { 
-      var region = parent.unoccupied(child);
-      return region.x; 
-    };
-    child.y = function() { 
-      var region = parent.unoccupied(child);
-      return region.y + region.height - child.height() - child.shadowOffsetY();
-    };
-    child.width = function() { 
-      var region = parent.unoccupied(child);
-      return region.width - child.shadowOffsetX();
-    };
-  };
-  dockers.left = function(child) {
-    var parent = this;
-    child.x = function() { 
-      var region = parent.unoccupied(child);
-      return region.x; 
-    };
-    child.y = function() { 
-      var region = parent.unoccupied(child);
-      return region.y; 
-    };
-    child.height = function() { 
-      var region = parent.unoccupied(child);
-      return region.height - child.shadowOffsetY(); 
-    };
-  };
-  dockers.right = function(child) { 
-    var parent = this;
-    child.x = function() { 
-      var region = parent.unoccupied(child);
-      return region.x + region.width - child.width() - child.shadowOffsetX(); 
-    };
-    child.y = function() { 
-      var region = parent.unoccupied(child);
-      return region.y; 
-    };
-    child.height = function() { 
-      var region = parent.unoccupied(child);
-      return region.height - child.shadowOffsetY();
-    };
-  };
-  dockers.fill = function(child) {
-    var parent = this;
-    child.x = function() { 
-      var region = parent.unoccupied(child);
-      return region.x; 
-    };
-    child.y = function() { 
-      var region = parent.unoccupied(child);
-      return region.y; 
-    };
-    child.width = function() { 
-      var region = parent.unoccupied(child);
-      return region.width - child.shadowOffsetX();
-    };
-    child.height = function() { 
-      var region = parent.unoccupied(child);
-      return region.height - child.shadowOffsetY();
-    };
-  }
+  options.spacing = options.spacing || constant(0);
+  options.padding = options.padding || constant(0);
   return function() {
     var parent = this;
+    parent.dock = function(child, type) {
+      var parent = this;
+      var base = { 
+        x: child.x, 
+        y: child.y,
+        width: child.width,
+        height: child.height,
+      };
+      var adjust = 
+      {
+        left:   { width: false, height: true,  x: true,  y: false },
+        right:  { width: false, height: true,  x: true,  y: false },
+        top:    { width: true,  height: false, x: false, y: true  },
+        bottom: { width: true,  height: false, x: false, y: true  },
+        fill:   { width: true,  height: true,  x: false, y: false },
+      }[type];
+      if (adjust.x) {
+        child.x = function() {
+          var region = parent.unoccupied(child);
+          return region.x + (type === 'right' ? region.width - child.width() - child.shadowOffsetX() : 0)
+        };
+      }
+      if (adjust.y) {
+        child.y = function() { 
+          var region = parent.unoccupied(child);
+          return region.y + (type === 'bottom' ? region.height - child.height() - child.shadowOffsetY() : 0);
+        };
+      }
+      if (adjust.width) {
+        child.x = function() {
+          if (!child.dockOptions.center()) return base.x.call(child);
+          var region = parent.unoccupied(child);
+          return region.x + region.width / 2 - (child.width() + child.shadowOffsetX()) / 2; 
+        };
+        child.width = function() { 
+          if (!child.dockOptions.stretch()) return base.width.call(child);
+          var region = parent.unoccupied(child);
+          return region.width - child.shadowOffsetX();
+        };
+      }
+      if (adjust.height) {
+        child.y = function() {
+          if (!child.dockOptions.center()) return base.y.call(child);
+          var region = parent.unoccupied(child);
+          return region.y + region.height / 2 - (child.height() + child.shadowOffsetY()) / 2;
+        };
+        child.height = function() { 
+          if (!child.dockOptions.stretch()) return base.height.call(child);
+          var region = parent.unoccupied(child);
+          return region.height - child.shadowOffsetY();
+        };
+      }
+    };
     // returns the unoccupied region after distributing
     // frames for all children (up to `upto` child, if specified).
     parent.unoccupied = function(upto) {
@@ -631,8 +667,11 @@ exports.dock = function(options) {
     };
     this.on('before-add-child', function(child) {
       var dockStyle = (child.dockStyle && child.dockStyle()) || 'top';
-      var docker = dockers[dockStyle];
-      if (docker) docker.call(parent, child);
+      child.dockOptions = defaults(child.dockOptions, {
+        center: constant(true),
+        stretch: constant(true),
+      });
+      parent.dock(child, dockStyle);
     });
   };
 };
@@ -666,6 +705,7 @@ module.exports = function(options) {
   options = options || {};
   options.bufferSize = options.bufferSize || constant(100);
   options.id = options.id || constant('#terminal'); // for `view.log(...)`
+  options.lineHeight = options.lineHeight || constant(12);
   var self = view(options);
   self.fillStyle = constant('black');
   var lines = [];
@@ -685,11 +725,11 @@ module.exports = function(options) {
   self.ondraw = function(ctx) {
     _ondraw.call(self, ctx);
     ctx.save();
-    var height = 8;
-    ctx.font = height + 'px Courier';
+    var lineHeight = self.lineHeight();
+    ctx.font = lineHeight + 'px Courier';
     ctx.textAlign = 'left';
     // calculate how many lines can fit into the terminal
-    var maxLines = self.height() / height;
+    var maxLines = self.height() / lineHeight;
     var first = max(0, Math.round(lines.length - maxLines) + 1);
     var y = 0;
     for (var i = first; i < lines.length; ++i) {
@@ -699,7 +739,7 @@ module.exports = function(options) {
       ctx.fillText(now, 0, y);
       ctx.fillStyle = 'white';
       ctx.fillText(line, ctx.measureText(now).width, y);
-      y += height;
+      y += lineHeight;
     }
     ctx.restore();
   };
@@ -736,6 +776,23 @@ exports.derive = function(options) {
     return obj;
   };  
 };
+// returns the value of `obj.property` if it is defined (could be `null` too)
+// if not, returns `def` (or false). useful for example in tri-state attributes where `null` 
+// is used to disregard it in the drawing process (e.g. `fillStyle`).
+exports.valueof = function(obj, property, def) {
+  if (!obj) throw new Error('`obj` is required');
+  if (!def) def = false;
+  if (!(property in obj)) return def;
+  else return obj[property];
+};
+exports.defaults = function(target, source) {
+  var valueof = exports.valueof;
+  target = target || {};
+  for (var k in source) {
+    target[k] = valueof(target, k, source[k]);
+  }
+  return target;
+}
     }
   };
 });
@@ -746,6 +803,7 @@ cui.module(1, function(/* parent */){
     'wrapper': function(module, exports, global, Buffer,process, require, undefined){
       var layouts = require('./layouts');
 var constant = require('./util').constant;
+var valueof = require('./util').valueof;
 module.exports = function(options) {
   var view       = options       || {};
   view.x         = view.x        || function() { return 0; };
@@ -758,15 +816,17 @@ module.exports = function(options) {
   view.layout    = view.layout   || layouts.stack();
   view.alpha     = view.alpha    || null;
   view.override  = view.override || null;
+  view.id        = view.id       || function() { return this._id; };
+  view.terminal  = view.terminal || function() { return this.query('#terminal'); };
   
-  view.shadowOffsetX = view.shadowOffsetX || function() { return 0; };
-  view.shadowOffsetY = view.shadowOffsetY || function() { return 0; };
-  view.shadowBlur = view.shadowBlur || function() { return 0; };
-  view.shadowColor = view.shadowColor || function() { return 'black'; };
-  view.textShadowBlur = view.textShadowBlur || function() { return 0; };
-  view.textShadowColor = view.textShadowColor || function() { return 'black' };
-  view.textShadowOffsetX = view.textShadowOffsetX || function() { return 0; };
-  view.textShadowOffsetY = view.textShadowOffsetY || function() { return 0; };
+  view.shadowOffsetX = valueof(view, 'shadowOffsetX') || function() { return 0; };
+  view.shadowOffsetY = valueof(view, 'shadowOffsetY') || function() { return 0; };
+  view.shadowBlur    = valueof(view, 'shadowBlur') || function() { return 0; };
+  view.shadowColor   = valueof(view, 'shadowColor') || function() { return 'black'; };
+  view.textShadowBlur    = valueof(view, 'textShadowBlur') || function() { return 0; };
+  view.textShadowColor   = valueof(view, 'textShadowColor') || function() { return 'black' };
+  view.textShadowOffsetX = valueof(view, 'textShadowOffsetX') || function() { return 0; };
+  view.textShadowOffsetY = valueof(view, 'textShadowOffsetY') || function() { return 0; };
   // rect
   view.radius    = view.radius || constant(0);
   // image
@@ -791,10 +851,10 @@ module.exports = function(options) {
     img.onload = function() { view.image = this; }
   }
   // -- log
+  // logs to the terminal associated with this view
   view.log = function() {
     var self = this;
-    var root = self.root();
-    var term = root.get('#terminal');
+    var term = self.terminal();
     if (!term) return;
     var args = [];
     var id = (self.id && self.id()) || self._id;
@@ -822,6 +882,17 @@ module.exports = function(options) {
       });
     }
     return handled;
+  };
+  // emits the event (with arguments) after 100ms
+  // should be used to allow ui to update when emitting
+  // events from event handlers.
+  view.queue = function(event) {
+    var self = this;
+    var args = arguments;
+    console.log('emitting later', event);
+    setTimeout(function() {
+      self.emit.apply(self, args);
+    }, 50);
   };
   view.on = function(event, handler) {
     var self = this;
@@ -925,17 +996,17 @@ module.exports = function(options) {
   // default draw for view is basically to draw a rectangle
   view.ondraw = function(ctx) {
     var self = this;
-    var radius = self.radius();
+    var radius = (self.radius && self.radius()) || 0;
     ctx.beginPath();
-    ctx.moveTo(0 + radius, 0);
-    ctx.lineTo(0 + self.width() - radius, 0);
-    ctx.quadraticCurveTo(0 + self.width(), 0, 0 + self.width(), 0 + radius);
-    ctx.lineTo(0 + self.width(), 0 + self.height() - radius);
-    ctx.quadraticCurveTo(0 + self.width(), 0 + self.height(), 0 + self.width() - radius, 0 + self.height());
-    ctx.lineTo(0 + radius, 0 + self.height());
-    ctx.quadraticCurveTo(0, 0 + self.height(), 0, 0 + self.height() - radius);
-    ctx.lineTo(0, 0 + radius);
-    ctx.quadraticCurveTo(0, 0, 0 + radius, 0);
+    ctx.moveTo(radius, 0);
+    ctx.lineTo(self.width() - radius, 0);
+    if (radius) ctx.quadraticCurveTo(self.width(), 0, self.width(), radius);
+    ctx.lineTo(self.width(), self.height() - radius);
+    if (radius) ctx.quadraticCurveTo(self.width(), self.height(), self.width() - radius, self.height());
+    ctx.lineTo(radius, self.height());
+    if (radius) ctx.quadraticCurveTo(0, self.height(), 0, self.height() - radius);
+    ctx.lineTo(0, radius);
+    if (radius) ctx.quadraticCurveTo(0, 0, radius, 0);
     ctx.closePath();
     
     self.drawFill(ctx);
@@ -951,7 +1022,7 @@ module.exports = function(options) {
   view.drawBorder = function(ctx) {
     var self = this;
     if (!self.strokeStyle) return;
-    // we don't want shadow the border
+    // we don't want shadow on the border
     ctx.save();
     ctx.shadowOffsetY = 0;
     ctx.shadowOffsetX = 0;
@@ -994,12 +1065,18 @@ module.exports = function(options) {
     if (self.textShadowOffsetX) ctx.shadowOffsetX = self.textShadowOffsetX();
     if (self.textShadowOffsetY) ctx.shadowOffsetY = self.textShadowOffsetY();
     if (self.textFillStyle) {
-      ctx.fillStyle = self.textFillStyle();
-      ctx.fillText(text, left, top, width);
+      var s = self.textFillStyle();
+      if (s && s !== '') {
+        ctx.fillStyle = self.textFillStyle();
+        ctx.fillText(text, left, top, width);
+      }
     }
     if (self.textStrokeStyle) {
-      ctx.strokeStyle = self.textStrokeStyle();
-      ctx.strokeText(text, left, top, width);
+      var s = self.textStrokeStyle();
+      if (s && s !== '') {
+        ctx.strokeStyle = s;
+        ctx.strokeText(text, left, top, width);
+      }
     }
     ctx.restore();
   };
@@ -1019,9 +1096,11 @@ module.exports = function(options) {
       ctx.translate(-centerX, -centerY);
     }
     if (self.visible()) {
+      // stuff that applies to all children
       ctx.translate(self.x(), self.y());
-      ctx.save();
       if (self.alpha) ctx.globalAlpha = self.alpha();
+      ctx.save();
+      // stuff that applies only to this child
       if (self.fillStyle) ctx.fillStyle = self.fillStyle();
       if (self.shadowBlur) ctx.shadowBlur = self.shadowBlur();
       if (self.shadowColor) ctx.shadowColor = self.shadowColor();
@@ -1164,6 +1243,7 @@ exports.rectangle = require('./rectangle');
 exports.view = require('./view');
 exports.terminal = require('./terminal');
 exports.button = require('./button');
+exports.app = require('./app');
     }
   };
 });

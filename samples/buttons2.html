@@ -13,6 +13,33 @@ window.onload = function() {
   var animate = UI.animation;
 
   var canvas = UI.canvasize({
+    fillStyle: constant('white'),
+    layout: UI.layouts.dock(),
+  });
+  var button = UI.button({
+    id: constant('#hello'),
+    dockStyle: constant('top'),
+    fillStyle: constant('red'),
+    rotation: animate(0.5, 100.5, {duration:constant(10000)}),
+    x: animate(30, 100),
+    shadowOffsetX: constant(10),
+    shadowOffsetY: constant(10),
+    shadowBlur: animate(10, 100),
+    text: function() {
+      return this.fillStyle();
+    },
+    highlighted: {
+      shadowColor: constant('red'),
+    }
+  });
+  canvas.add(button);
+  canvas.add(UI.terminal({
+    dockStyle: constant('fill'),
+  }));
+
+  return;
+
+  var canvas = UI.canvasize({
     layout: UI.layouts.dock({ padding: constant(0) }),
     children: [
       UI.view({

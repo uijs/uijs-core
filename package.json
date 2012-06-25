@@ -11,6 +11,7 @@
   "dependencies": {},
   "devDependencies": {},
   "optionalDependencies": {},
+  "bin": {},
   "description": "A controvertial canvas based user interface system for mobile apps",
   "main": "./lib/index"
 }

@@ -2,7 +2,7 @@
 <meta name="viewport" content="width=320, initial-scale=1, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes" />
 </head>
-<script src='../out/cui.js'></script>
+<script src='../dist/a.js'></script>
 <script>
 window.onload = function() {
   var UI = cui.require('main');
@@ -71,12 +71,21 @@ window.onload = function() {
       palette: constant(palette1),
       layout: UI.layouts.dock({padding:constant(3),spacing:constant(3)}),
       children: [
-        frame({ text: constant('left1'),   dockStyle: constant('left') }),
+        frame({ 
+          text: constant('left1'),
+          dockStyle: constant('left'),
+          dockOptions: { stretch: constant(false) },
+          height: constant(150),
+        }),
         frame({ text: constant('bottom1'), dockStyle: constant('bottom') }),
-        frame({ text: constant('right1'),  dockStyle: constant('right') }),
-        frame({ text: constant('top1'),    dockStyle: constant('top') }),
-        frame({ text: constant('bottom2'), dockStyle: constant('bottom') }),
-        frame({ text: constant('fill'),    dockStyle: constant('fill') }),
+        frame({ text: constant('right1'), dockStyle: constant('right') }),
+        frame({ text: constant('top1'), dockStyle: constant('top') }),
+        frame({
+          text: constant('bottom2'), 
+          dockStyle: constant('bottom'), 
+          dockOptions: { stretch: constant(false) } 
+        }),
+        frame({ text: constant('fill'), dockStyle: constant('fill') }),
       ]
     });
   }

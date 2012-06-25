@@ -1,0 +1,104 @@
+<html>
+<head>
+<script src='../out/cui.js'></script>
+
+<script>
+
+// with canvasui
+function canvasui() {
+  var UI = cui.require('main');
+  var canvas = UI.canvasize({
+    width: function() { return 1000; },
+    height: function() { return 1000; },
+  });
+
+  canvas.ondraw = function(ctx) {
+    ctx.fillStyle = canvas._touching ? 'red' : 'blue';
+    ctx.fillRect(0, 0, 40, 40);
+
+  };
+
+  canvas.fillStyle = function() {
+    return canvas._touching ? 'blue' : 'red';
+  }
+
+  canvas.on('touchstart', function() {
+    canvas._touching = true;
+  });
+
+  canvas.on('touchend', function() {
+    canvas._touching = false;
+  });  
+}
+
+function raw() {
+  
+  window.requestAnimationFrame || (
+    window.requestAnimationFrame = 
+    window.webkitRequestAnimationFrame || 
+    window.mozRequestAnimationFrame    || 
+    window.oRequestAnimationFrame      || 
+    window.msRequestAnimationFrame     ||
+    function(callback) { setTimeout(callback, 1000 / 60); }
+  );
+
+  var canvas = document.createElement('canvas');
+  document.body.appendChild(canvas);
+  document.body.style.background = 'white';
+  canvas.style.background = 'white';
+  document.body.style.padding = '0px';
+  document.body.style.margin = '0px';
+
+  window.onresize = function() {
+    // http://joubert.posterous.com/crisp-html-5-canvas-text-on-mobile-phones-and
+    canvas.width = window.innerWidth * window.devicePixelRatio;
+    canvas.height = window.innerHeight * window.devicePixelRatio;
+    canvas.style.width = window.innerWidth;
+    canvas.style.height = window.innerHeight;
+    canvas.getContext('2d').scale(window.devicePixelRatio, window.devicePixelRatio);
+  };
+
+  document.body.onorientationchange = window.onresize;
+
+  setTimeout(function() { 
+    window.scrollTo(0, 0);
+    window.onresize();
+  }, 0);
+
+  window.onresize();
+
+  var ctx = canvas.getContext('2d');
+
+  var touching = false;
+
+  var color = function() {
+    return touching ? 'red' : 'blue';
+
+  }
+
+  function redraw() {
+    ctx.fillStyle = color();
+    ctx.fillRect(0, 0, 320, 480);
+    requestAnimationFrame(redraw);
+  }
+
+  redraw();
+
+  canvas.ontouchstart = function(e) {
+    e.preventDefault();
+    touching = true;
+  }
+
+  canvas.ontouchend = function(e) {
+    e.preventDefault();
+    touching = false;
+  };
+}
+
+window.onload = function() {
+  canvasui();//raw();
+};
+
+</script>
+</head>
+</html>
