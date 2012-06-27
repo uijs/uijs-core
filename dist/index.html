@@ -1,4 +1,20 @@
-var cui = (function(global, undefined){
+<html>
+  <head>
+    <meta name="viewport" content="width=320, initial-scale=1, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <style>
+      body {
+        margin: 0px; 
+        padding: 0px;
+        background: black url('dist/assets/img/splash.png') no-repeat fixed center;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+    var uijs = (function(global, undefined){
   var DEBUG         = false,
       pkgdefs       = {},
       pkgmap        = {},
@@ -217,7 +233,7 @@ exports.umask = notImplemented;
     'lib'        : lib,
     'findPkg'    : findPkg,
     'findModule' : findModule,
-    'name'       : 'cui',
+    'name'       : 'uijs',
     'module'     : module,
     'pkg'        : pkg,
     'packages'   : pkgmap,
@@ -227,17 +243,17 @@ exports.umask = notImplemented;
     'require'    : mainRequire
 });
 })(this);
-cui.pkg(function(parents){
+uijs.pkg(function(parents){
   return {
     'id':1,
-    'name':'cui',
+    'name':'uijs',
     'main':undefined,
     'mainModuleId':'lib/index',
     'modules':[],
     'parents':parents
   };
 });
-cui.module(1, function(/* parent */){
+uijs.module(1, function(/* parent */){
   return {
     'id': 'lib/animation',
     'pkg': arguments[0],
@@ -285,7 +301,7 @@ module.exports = function(from, to, options) {
     }
   };
 });
-cui.module(1, function(/* parent */){
+uijs.module(1, function(/* parent */){
   return {
     'id': 'lib/app',
     'pkg': arguments[0],
@@ -301,7 +317,7 @@ module.exports = function(options) {
     }
   };
 });
-cui.module(1, function(/* parent */){
+uijs.module(1, function(/* parent */){
   return {
     'id': 'lib/button',
     'pkg': arguments[0],
@@ -347,7 +363,7 @@ module.exports = function(options) {
     }
   };
 });
-cui.module(1, function(/* parent */){
+uijs.module(1, function(/* parent */){
   return {
     'id': 'lib/canvasize',
     'pkg': arguments[0],
@@ -378,8 +394,8 @@ module.exports = function(options) {
   var canvas = null;
   if (options.element) {
     canvas = options.element;
-    canvas.width = parseInt(canvas.style.width) * window.devicePixelRatio;
-    canvas.height = parseInt(canvas.style.height) * window.devicePixelRatio;
+    canvas.width = canvas.width || parseInt(canvas.style.width) * window.devicePixelRatio;
+    canvas.height = canvas.height || parseInt(canvas.style.height) * window.devicePixelRatio;
   }
   else {
     if (document.body.hasChildNodes()) {
@@ -445,7 +461,9 @@ module.exports = function(options) {
       var coords = (name !== 'touchend') ? getCoords(e) : getCoords(e.changedTouches[0]);
       // coords.x *= window.devicePixelRatio;
       // coords.y *= window.devicePixelRatio;
-      main.log('on' + name, coords.x + ',' + coords.y);
+      if (coords) main.log('on' + name, coords.x + ',' + coords.y);
+      else main.log('error - no coords for ' + name);
+      
       main.interact(name, coords, e);
     };
   });
@@ -464,36 +482,43 @@ module.exports = function(options) {
     }
   };
 });
-cui.module(1, function(/* parent */){
+uijs.module(1, function(/* parent */){
   return {
     'id': 'lib/image',
     'pkg': arguments[0],
     'wrapper': function(module, exports, global, Buffer,process, require, undefined){
       var view = require('./view');
+var defaults = require('./util').defaults;
+var constant = require('./util').constant;
 module.exports = function(options) {
-  var self = view(options);
+  var obj = view(defaults(options, {
+    stretch: constant(true),
+  }));
   var base = {
     width: self.width,
     height: self.height,
   };
-  self.width = function() {
-    if (self.image) {
-      return self.image.width;
-    }
-    else return base.width.call(self);
-  };
-  self.height = function() {
-    if (self.image) {
-      return self.image.height;
-    }
-    else return base.height.call(self);
-  };
-  return self;
+  // console.log('!!!');
+  // obj.width = function() {
+  //   var self = this;
+  //   if (self.image && !self.stretch()) {
+  //     return self.image.width;
+  //   }
+  //   else return base.width.call(self);
+  // };
+  // obj.height = function() {
+  //   var self = this;
+  //   if (self.image & !self.stretch()) {
+  //     return self.image.height;
+  //   }
+  //   else return base.height.call(self);
+  // };
+  return obj;
 };
     }
   };
 });
-cui.module(1, function(/* parent */){
+uijs.module(1, function(/* parent */){
   return {
     'id': 'lib/index',
     'pkg': arguments[0],
@@ -506,13 +531,14 @@ exports.label = require('./label');
 exports.layouts = require('./layouts');
 exports.rectangle = require('./rectangle');
 exports.view = require('./view');
-exports.terminal = require('./terminal');
 exports.button = require('./button');
 exports.app = require('./app');
+exports.terminal = require('./terminal');
+exports.rterm = require('./rterm');
     }
   };
 });
-cui.module(1, function(/* parent */){
+uijs.module(1, function(/* parent */){
   return {
     'id': 'lib/label',
     'pkg': arguments[0],
@@ -524,7 +550,7 @@ module.exports = function(options) {
     }
   };
 });
-cui.module(1, function(/* parent */){
+uijs.module(1, function(/* parent */){
   return {
     'id': 'lib/layouts',
     'pkg': arguments[0],
@@ -638,6 +664,8 @@ exports.dock = function(options) {
           break;
         }
         var child = parent._children[id];
+        if (!child.visible()) continue;
+        
         var dockStyle = (child.dockStyle && child.dockStyle()) || 'top';
         switch (dockStyle) {
           case 'top':
@@ -681,7 +709,7 @@ exports.none = function() {
     }
   };
 });
-cui.module(1, function(/* parent */){
+uijs.module(1, function(/* parent */){
   return {
     'id': 'lib/rectangle',
     'pkg': arguments[0],
@@ -693,7 +721,39 @@ module.exports = function(options) {
     }
   };
 });
-cui.module(1, function(/* parent */){
+uijs.module(1, function(/* parent */){
+  return {
+    'id': 'lib/rterm',
+    'pkg': arguments[0],
+    'wrapper': function(module, exports, global, Buffer,process, require, undefined){
+      var view = require('./view');
+var constant = require('./util').constant;
+var defaults = require('./util').defaults;
+module.exports = function(socket, options) {
+  if (!socket) throw new Error('`socket` is required');
+  var obj = view(defaults(options, {
+    id: constant('#terminal'),
+    visible: constant(false),
+  }));
+  obj.writeLine = function() {
+    var args = [];
+    
+    for (var i = 0; i < arguments.length; ++i) {
+      args.push(arguments[i]);
+    }
+    var line = {
+      time: Date.now(),
+      data: args.join(' '),
+    };
+    socket.emit('log', line);
+    return line;
+  };
+  return obj;
+};
+    }
+  };
+});
+uijs.module(1, function(/* parent */){
   return {
     'id': 'lib/terminal',
     'pkg': arguments[0],
@@ -710,16 +770,18 @@ module.exports = function(options) {
   self.fillStyle = constant('black');
   var lines = [];
   self.writeLine = function(s) {
-    lines.push({
+    var line = {
       data: s,
       time: Date.now()
-    });
+    };
+    lines.push(line);
     var bufferSize = self.bufferSize && self.bufferSize();
     if (bufferSize) {
       while (lines.length > bufferSize) {
         lines.shift();
       }
     }
+    return line;
   };
   var _ondraw = self.ondraw;
   self.ondraw = function(ctx) {
@@ -748,7 +810,7 @@ module.exports = function(options) {
     }
   };
 });
-cui.module(1, function(/* parent */){
+uijs.module(1, function(/* parent */){
   return {
     'id': 'lib/util',
     'pkg': arguments[0],
@@ -792,11 +854,21 @@ exports.defaults = function(target, source) {
     target[k] = valueof(target, k, source[k]);
   }
   return target;
-}
+};
+exports.loadimage = function(src) {
+  if (typeof src === 'function') src = src();
+  
+  var img = new Image();
+  img.src = src;
+  img.onload = function() { };
+  return function() {
+    return img;
+  }
+};
     }
   };
 });
-cui.module(1, function(/* parent */){
+uijs.module(1, function(/* parent */){
   return {
     'id': 'lib/view',
     'pkg': arguments[0],
@@ -823,6 +895,7 @@ module.exports = function(options) {
   view.shadowOffsetY = valueof(view, 'shadowOffsetY') || function() { return 0; };
   view.shadowBlur    = valueof(view, 'shadowBlur') || function() { return 0; };
   view.shadowColor   = valueof(view, 'shadowColor') || function() { return 'black'; };
+  view.font              = valueof(view, 'font')           || function() { return '16pt Helvetica'; };
   view.textShadowBlur    = valueof(view, 'textShadowBlur') || function() { return 0; };
   view.textShadowColor   = valueof(view, 'textShadowColor') || function() { return 'black' };
   view.textShadowOffsetX = valueof(view, 'textShadowOffsetX') || function() { return 0; };
@@ -1033,7 +1106,9 @@ module.exports = function(options) {
   view.drawImage = function(ctx) {
     var self = this;
     if (self.image) {
-      ctx.drawImage(self.image, 0, 0, self.width(), self.height());
+      var img = self.image();
+      if (!img) return;
+      ctx.drawImage(img, 0, 0, self.width(), self.height());
     }
   }
   view.drawText = function(ctx) {
@@ -1228,7 +1303,7 @@ module.exports = function(options) {
     }
   };
 });
-cui.module(1, function(/* parent */){
+uijs.module(1, function(/* parent */){
   return {
     'id': 'lib/index',
     'pkg': arguments[0],
@@ -1241,15 +1316,56 @@ exports.label = require('./label');
 exports.layouts = require('./layouts');
 exports.rectangle = require('./rectangle');
 exports.view = require('./view');
-exports.terminal = require('./terminal');
 exports.button = require('./button');
 exports.app = require('./app');
+exports.terminal = require('./terminal');
+exports.rterm = require('./rterm');
     }
   };
 });
 if(typeof module != 'undefined' && module.exports ){
-  module.exports = cui;
+  module.exports = uijs;
   if( !module.parent ){
-    cui.main();
+    uijs.main();
   }
 };
+window.require = uijs.require;
+window.app = telobike.require('uijs');
+
+    </script>
+    <script src=''></script>
+    <script>
+    window.onload = function() {
+      var cui = require('cui');
+      
+      // -- create canvas
+
+      var canvas = cui.canvasize();
+
+      // -- add app to canvas
+
+      canvas.add(app);
+
+      // -- remote logging
+
+      // try to load socket.io asynchronously from /socket.io/socket.io.js and fail 
+      // gracefully if it doesn't exist
+      var script = document.createElement('script');
+      script.onload = function() {
+        if (typeof io !== 'undefined') {
+          var socket = io.connect('/');
+          canvas.add(cui.rterm(socket));
+        }
+      };
+      script.onerror = function(e) {
+        e.preventDefault();
+      };
+      script.type = 'text/javascript';
+      script.async = true;
+      script.src = '/socket.io/socket.io.js';
+      document.getElementsByTagName('head')[0].appendChild(script);
+    };
+    </script>
+
+  </body>
+</html>

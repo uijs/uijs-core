@@ -1,6 +1,0 @@
-#!/usr/bin/env node
-var build = require('../lib/build');
-build(function(err) {
-  if (err) console.error(err);
-  console.log('build done');
-});

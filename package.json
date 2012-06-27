@@ -1,0 +1,14 @@
+{
+  "name": "uijs",
+  "version": "0.0.1",
+  "author": "Elad Ben-Israel <elad.benisrael@gmail.com>",
+  "repository": { "url": "https://github.com/eladb/uijs" },
+  "engines": {},
+  "dependencies": {},
+  "devDependencies": {
+    "uijs-devtools": "git+ssh://git@github.com:eladb/uijs-devtools.git"
+  },
+  "optionalDependencies": {},
+  "description": "A controvertial canvas based ui system for mobile apps",
+  "main": "./lib/index"
+}
