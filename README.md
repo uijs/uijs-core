@@ -1,6 +1,6 @@
-A mobile UI system for real apps.
+# uijs
 
-[![Build Status](https://secure.travis-ci.org/eladb/uijs.png)](http://travis-ci.org/eladb/uijs)
+A mobile UI system for real apps.
 
 [Stability](http://nodejs.org/docs/latest/api/all.html#all_stability_index): 1 - Experimental
 
