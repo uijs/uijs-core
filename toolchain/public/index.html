@@ -1,0 +1,75 @@
+<html>
+<head>
+
+<script src='/socket.io/socket.io.js'></script>
+<script src='/dist/a.js'></script>
+
+<script type="text/javascript">
+
+window.onload = function() {
+  var socket = io.connect('http://localhost');
+
+  var UI = require('cui');
+
+  var constant = UI.util.constant;
+  var derive = UI.util.derive;
+  var animate = UI.animation;
+  var defaults = UI.util.defaults;
+  var override = UI.util.override;
+
+  var background = document.getElementById('background');
+  background.style.position = 'absolute';
+  background.style.left = 0;
+  background.style.top =0;
+  background.style.width = 357;
+  background.style.height = 684;
+
+  var overlay = document.getElementById('overlay');
+  overlay.style.position = 'absolute';
+  overlay.style.left = 19;
+  overlay.style.top = 101;
+  overlay.style.width = 320;
+  overlay.style.height = 480;
+
+  var c = document.getElementById('canvas');
+  c.style.position = 'absolute';
+  c.style.left = overlay.style.left;
+  c.style.top = overlay.style.top;
+  c.style.width = overlay.style.width;
+  c.style.height = overlay.style.height;
+
+  var term = document.getElementById('terminal');
+  term.style.position = 'absolute';
+  term.style.left = 400;
+  term.style.top = 100;
+  term.style.width = 700;
+  term.style.height = 400;
+
+  var statusbar = true;
+
+  if (statusbar) {
+    c.style.height = parseInt(c.style.height) - 20;
+    c.style.top = parseInt(c.style.top) + 20;
+  }
+
+  var canvas = UI.canvasize({
+    element: c,
+    alpha: constant(0.0),
+    layout: UI.layouts.dock(),
+  });
+
+  canvas.add(UI.rterm(socket));
+  canvas.add(app);
+};
+
+</script>
+</head>
+
+<body>
+    <img id='background' src='img/iphone.png'>
+    <img id='overlay' src='img/overlay.jpg'>
+    <canvas id='canvas'></canvas>
+    <canvas id='terminal'></canvas>
+</body>
+
+</html>

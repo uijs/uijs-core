@@ -1,0 +1,69 @@
+#!/usr/bin/env node
+var express = require('express');
+var socketio = require('socket.io');
+var path = require('path');
+var fs = require('fs');
+var watch = require('fs-watch-tree').watchTree;
+var build = require('../lib/build');
+
+var argv = require('optimist')
+  .usage('Usage: $0')
+  .describe('a', 'path to a cui app (with package.json and all)').alias('a', 'app').default('app', process.cwd())
+  .describe('w', 'additional directories to watch for changes').alias('w', 'watch').default('watch', [])
+  .describe('pre', 'optional prebuild script to execute before every build (cwd will be the app\'s directory)')
+  .argv;
+
+var server = express.createServer();
+var building = false;
+
+function build_app() {
+  if (building) return;
+
+  building = true;
+
+  console.log('Building', argv.app);
+  
+  var options = {
+    package: path.join(argv.app, 'package.json'),
+    pre: argv.pre,
+  };
+
+  return build(options, function(err, dist, manifest) {
+    building = false;
+    if (err) console.error(err);
+    else console.log(manifest.name + ' build done');
+  });    
+}
+
+build_app();
+
+if (typeof argv.watch === 'string') argv.watch = [ argv.watch ];
+argv.watch.push(argv.app);
+
+argv.watch.forEach(function(dir) {
+  var exclude = [ 'dist', 'node_modules' ];
+  console.log('Watching', dir);
+  watch(dir, { exclude: exclude }, function(event) {
+    if (!building && event.isModify()) {
+      console.log(event.name + ' changed. rebuilding');
+    }
+
+    build_app();
+  });
+});
+
+server.use(express.static(path.join(__dirname, '..', 'public')));
+server.use('/dist', express.static(path.join(argv.app, 'dist')));
+
+var io = socketio.listen(server, {
+  'log level': 1
+});
+
+io.sockets.on('connection', function (socket) {
+  socket.on('log', function(line) {
+    console.log('[' + new Date(line.time).toISOString() + '] ' + line.data);
+  });
+});
+
+server.listen(process.env.port || 5000);
+console.log('cui debugger listening on http://localhost:' + (process.env.port || 5000));
