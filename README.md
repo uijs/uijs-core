@@ -4,6 +4,21 @@ A mobile UI system for real apps.
 
 [Stability](http://nodejs.org/docs/latest/api/all.html#all_stability_index): 1 - Experimental
 
+# Building samples
+
+Samples are simple uijs modules (CommonJS modules that export a `view`/`app`).
+In order to build the sample, just install uijs-devtools (`npm install -g uijs-devtools`) and
+point `uijs-build` to the sample file.
+
+For example:
+
+```bash
+$ cd samples
+$ uijs-build buttons.js
+```
+
+A file named `buttons.uijs.html` will be created. Open it with a browser and enjoy.
+
 # License
 
 (The MIT License)
