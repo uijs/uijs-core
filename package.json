@@ -6,7 +6,7 @@
   "engines": {},
   "dependencies": {},
   "devDependencies": {
-    "uijs-devtools": "git+ssh://git@github.com:eladb/uijs-devtools.git"
+    "uijs-devtools": "*"
   },
   "optionalDependencies": {},
   "description": "A controvertial canvas based ui system for mobile apps",
