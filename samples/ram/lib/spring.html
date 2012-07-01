@@ -1,0 +1,88 @@
+
+<!doctype html>
+<html><head>
+<script>
+function init(){
+    var canvas = document.getElementById('canvas')
+    
+    var width = canvas.width = window.innerWidth-10
+  var height = canvas.height = window.innerHeight-10
+    
+    var c = canvas.getContext('2d');
+    
+    function blade(base_x, friction, spring_x){
+      var s = spring(base_x, friction, spring_x);
+    
+      function step(){
+        c.fillStyle = 'black';
+        c.fillRect(s(), 100, 10, 10);
+      }
+
+      return {step:step}
+  }
+  
+  function spring(base_x, friction, spring_x) {
+    var x = base_x + 500;
+    var v_x = 0;
+    var a_x = 0;
+
+    return function() {
+      a_x = spring_x * (base_x - x)
+      v_x = v_x * friction + a_x
+      x += v_x;
+      return x;
+    };
+  }
+
+
+  blades = [
+    blade(0, 0.8, 0.1),
+  ]
+
+  window.requestAnimationFrame || (
+    window.requestAnimationFrame = 
+    window.webkitRequestAnimationFrame || 
+    window.mozRequestAnimationFrame    || 
+    window.oRequestAnimationFrame      || 
+    window.msRequestAnimationFrame     || 
+    function(cb) { setTimeout(cb, 1000/60); }
+  );
+ 
+  function stepAll(){
+    //c.clearRect(0,0,width,height)
+    c.fillStyle='rgba(255,255,255,0.7)'
+    c.fillRect(0, 0, width, height)
+    for (var i=0; i<blades.length; i++){
+      blades[i].step()
+    }
+
+    window.requestAnimationFrame(stepAll);
+  }
+
+  stepAll();
+  
+  // var interval = null
+  //   function start(){
+  //     if (interval ==null) interval=setInterval(stepAll, 75)
+  //   }
+  //   function stop(){
+  //     clearInterval(interval)
+  //     interval=null
+  //   }
+    
+  //   start()
+}
+
+</script>
+
+<style> 
+* {
+  padding: 0;
+  margin:0;
+ 
+}
+</style>
+</head>
+<body onload='setTimeout(init, 300)'>
+<canvas id='canvas'></canvas>
+</body></html>
