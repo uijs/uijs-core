@@ -6,9 +6,14 @@
   "engines": {},
   "dependencies": {},
   "devDependencies": {
-    "uijs-devtools": "*"
+    "uijs-devtools": "*",
+    "cantest": "0.0.2",
+    "canvas": "0.12.1"
   },
   "optionalDependencies": {},
   "description": "A controvertial canvas based ui system for mobile apps",
-  "main": "./lib/index"
+  "main": "./lib/index",
+  "scripts": {
+    "test": "cantest test/*-test.js"
+  }
 }

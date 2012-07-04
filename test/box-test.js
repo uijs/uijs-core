@@ -1,8 +1,10 @@
-var uijs = require('uijs');
+var uijs = require('..');
 var box = uijs.box;
 var defaults = uijs.util.defaults;
 var constant = uijs.util.constant;
 var positioning = uijs.positioning;
+
+var Canvas = require('canvas');
 
 function rect(options) {
   options = defaults(options, {
@@ -63,7 +65,7 @@ var app = rect({
     }),
     rect({
       id: constant('#center'),
-      label: function() { return 'rotation=' + this.rotation(); },
+      label: function() { return 'rotated'; },
       rotation: constant(Math.PI / 1.5),
       clip: constant(true),
       x: positioning.centerx(50),
@@ -122,4 +124,10 @@ function dock(box) {
   });  
 }
 
-module.exports = app;
+module.exports = function() {
+  // attach uijs to the node-canvas canvas (cool!), 
+  // `paused` is true so that the refresh loop will not begin, so we also need to call `redraw()`.
+  var root = uijs.canvasize({ element: new Canvas(320, 480), children: [ app ] });
+  root.redraw();
+  return root.canvas;
+};
