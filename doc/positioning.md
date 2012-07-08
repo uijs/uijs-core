@@ -5,7 +5,7 @@ The `uijs.positioning` module provides a set of utility functions to aid in posi
 It exports two types of functions:
 
  1. __Attribute functions__ : `top`, `left`, `width`, `height`, `right`, `bottom`, `centerx`, `centery`
- 2. __Relation functions__: `parent.xxx`, `relative.xxx` where `xxx` is one of the attribute function.
+ 2. __Relation functions__: `parent.xxx`, `prev.xxx` where `xxx` is one of the attribute function.
 
 A common usage would be to assign one of the relation functions to a box's attribute
 so that it will be positioning in relation to it's parent box or some sibling.

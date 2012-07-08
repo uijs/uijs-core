@@ -5,7 +5,7 @@ var c = uijs.util.constant;
 
 /*
 
- parent 
+ parent
   |
   +-- child1
   +
