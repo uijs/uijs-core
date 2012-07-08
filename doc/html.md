@@ -92,7 +92,7 @@ Example:
 
 The result:
 
-![image](html-1.png)
+![image](https://github.com/eladb/uijs/raw/master/doc/html-1.png)
 
  > When you open the browser, you will see the HTML box animating from `0, 0` towards `200, 100`
 and when you select a different options, the app's background will change accordingly. Pretty cool.
