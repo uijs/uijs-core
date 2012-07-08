@@ -32,6 +32,27 @@ Example:
         container.innerHTML = '<h4>This is my box</h4>';
     };
     
+
+### html.container
+
+This is a property that returns the `<div>` container associated with this box. You can use it to alter the `<div>`'s HTML
+or make any manipulations that you like. This property can only be called after `onload` has been called. If called beforehand, it will return `null`.
+
+Example:
+
+    var mybox = html();
+    
+    somebutton.onclick = function() {
+      var container = mybox.container;
+      if (!container) {
+        console.warn('DOM still not loaded');
+        return;
+      }
+
+      container.innerHTML = '<p>Clicked!</p>'
+    };
+
+
 ## Sample
 
     var uijs = require('uijs');
