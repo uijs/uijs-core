@@ -2,9 +2,15 @@
 
 The `uijs.box` module is the core of _uijs_. A box represents a rectangluarly bound object on the uijs canvas.
 
-See [Derivation](#derivation) for details on how to create derived box types.
+ * [Construction](#construction)
+ * [Attributes](#attributes)
+ * [Events](#events)
+ * [Drawing](#drawing)
+ * [Hierarchy](#hierarchy)
+ * [EventEmitter](#eventemitter)
+ * [Derivation](#derivation)
 
-## Creating boxes
+## Construction
 
 A box is created by calling `box(options)`. The return value is a box. `options` may contain values for any of the box's attributes which override any defaults provided by the box.
 
@@ -44,7 +50,7 @@ The base box has the following attributes and defaults:
     
 ## Events
 
-See the __EventEmitter__ chapter below for details on how to emit and subscribe to events.
+See the [EventEmitter](#EventEmitter) chapter below for details on how to emit and subscribe to events.
 
  * `touchstart`, `touchmove`, `touchend` with `function(e)` - Interaction events where 
    `e.x` and `e.y` are local coordinates.
