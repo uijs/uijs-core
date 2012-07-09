@@ -2,3 +2,4 @@
 node_modules
 *.uijs.html
 .tmp*
+dist

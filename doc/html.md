@@ -52,6 +52,15 @@ Example:
       container.innerHTML = '<p>Clicked!</p>'
     };
 
+### html.interaction
+
+As with any box, the `interaction` attribute indicates whether the box receives touch/mouse events. By default, an html
+box as `interaction: false` since we usually want regular html interaction. To enable uijs interaction on the box, set 
+interaction to `true`:
+
+    var box_with_interaction = html({
+      interaction: constant(true),
+    });
 
 ## Sample
 

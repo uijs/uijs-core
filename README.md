@@ -8,16 +8,16 @@ A mobile UI system for real apps.
 
 Samples are simple uijs modules (CommonJS modules that export a `view`/`app`).
 In order to build the sample, just install uijs-devtools (`npm install -g uijs-devtools`) and
-point `uijs-build` to the sample file.
+point `uijs build` to the sample file.
 
 For example:
 
 ```bash
 $ cd samples
-$ uijs-build buttons.js
+$ uijs build demostack-sample.js
 ```
 
-A file named `buttons.uijs.html` will be created. Open it with a browser and enjoy.
+A file named `dist/demostack-sample.uijs.html` will be created. Open it with a browser and enjoy.
 
 # License
 

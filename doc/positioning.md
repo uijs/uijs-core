@@ -85,7 +85,6 @@ attribute of the passed in `box` (with an optional delta value).
 
 Example:
 
-    var positioning = uijs.positioning;
     var mybox = box({
         x: constant(40),
         y: constant(50),
@@ -113,8 +112,6 @@ current right coordinate of the box's parent.
 
 Example:
 
-    var positioning = uijs.positioning;
-
     // put `mybox` at the center of it's parent
     mybox.x = positioning.parent.centerx();
     mybox.y = positioning.parent.centery();
@@ -129,7 +126,18 @@ the "previous" (non existing) child. See the example above for an example.
 
 Example:
 
-    var positioning = uijs.positioning;
-
     // put `mybox` 5 pixels south of the previous child
     mybox.y = positioning.prev.bottom(+5);
+
+### positioning.relative(id).{ left | top | . . . }([delta])
+
+Returns an attributed positional `function()` bound to a relative with ID `id`.
+
+Example:
+
+    box({
+      box({ id: constant('#hello') }),
+      box({ x: positioning.relative('#hello').bottom() )})
+    });
+
+This will cause the 2nd child to be located at the bottom of the first child.

@@ -70,9 +70,11 @@ b2.on('touchstart', function() {
   touching = true;
   touch_end = 0;
   points = [];
+  this.startCapture();
 });
 
 b2.on('touchmove', function(pt) {
+  if (!touching) return;
   points.push({
     x: pt.x,
     y: pt.y,
@@ -84,6 +86,7 @@ b2.on('touchmove', function(pt) {
 b2.on('touchend', function() {
   touching = false;
   touch_end = Date.now();
+  this.stopCapture();
 });
 
 b2.onoptions = function(container) {
