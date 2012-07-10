@@ -1,7 +1,6 @@
 var assert = require('assert');
 var uijs = require('..');
 var box = uijs.box;
-var c = uijs.util.constant;
 
 var queue = [];
 
@@ -11,7 +10,7 @@ function polish_box(options) {
 
   obj.on('E1', function(pt) {
     queue.push({
-      id: obj.id(),
+      id: obj.id,
       pt: pt,
     });
   });
@@ -20,50 +19,50 @@ function polish_box(options) {
 }
 
 var app = polish_box({
-  id: c('#root'),
-  x: c(5),
-  y: c(5),
-  width: c(100),
-  height: c(100),
-  interaction: c(true),   // capture interaction events altogther
-  autopropagate: c(true), // propagate interaction events to child boxes
+  id: '#root',
+  x: 5,
+  y: 5,
+  width: 100,
+  height: 100,
+  interaction: true,   // capture interaction events altogther
+  autopropagate: true, // propagate interaction events to child boxes
 });
 
 var child1 = app.add(polish_box({
-  id: c('#child1'),
-  x: c(10),
-  y: c(10),
-  width: c(50),
-  height: c(50),
-  interaction: c(true)
+  id: '#child1',
+  x: 10,
+  y: 10,
+  width: 50,
+  height: 50,
+  interaction: true
 }));
 
 var child3 = app.add(polish_box({
-  id: c('#child3'),
-  x: c(30),
-  y: c(30),
-  width: c(80),
-  height: c(80),
-  interaction: c(false), // events will not be captured (passthrough to child2)
+  id: '#child3',
+  x: 30,
+  y: 30,
+  width: 80,
+  height: 80,
+  interaction: false, // events will not be captured (passthrough to child2)
 }));
 
 var child2 = app.add(polish_box({
-  id: c('#child2'),
-  x: c(10),
-  y: c(70),
-  width: c(50),
-  height: c(50),
-  interaction: c(true),    // events will be captured
-  autopropagate: c(false), // events will not be propagated to children
+  id: '#child2',
+  x: 10,
+  y: 70,
+  width: 50,
+  height: 50,
+  interaction: true,    // events will be captured
+  autopropagate: false, // events will not be propagated to children
 }));
 
 var grandchild = child2.add(polish_box({
-  id: c('#grandchild'),
-  x: c(10),
-  y: c(10),
-  width: c(10),
-  height: c(50),
-  interaction: c(true),
+  id: '#grandchild',
+  x: 10,
+  y: 10,
+  width: 10,
+  height: 50,
+  interaction: true,
 }));
 
 // box.screen()
@@ -120,7 +119,7 @@ assert.deepEqual(queue[1], { id: '#child2', pt: { x: 12, y: 12 } });
 queue = [];
 
 // now set propagate to true and see the grandchild enjoy the event as well
-child2.autopropagate = c(true);
+child2.autopropagate = true;
 app.interact('E1', { x: 22, y: 82 });
 assert.equal(queue.length, 3);
 assert.deepEqual(queue[0], { id: '#root', pt: { x: 22, y: 82 } });

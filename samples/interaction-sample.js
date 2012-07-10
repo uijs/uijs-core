@@ -1,14 +1,13 @@
 var uijs = require('uijs');
 var box = uijs.box;
-var c = uijs.util.constant;
 var defaults = uijs.util.defaults;
 var html = uijs.html;
 var positioning = uijs.positioning;
 
 function rect(options) {
   options = defaults(options, {
-    color: c('white'),
-    label: c(false),
+    color: 'white',
+    label: false,
   });
 
   var obj = box(options);
@@ -17,26 +16,22 @@ function rect(options) {
   var points = [];
   var marker_delta = Math.round(Math.random() * 100) % 10 - 5;
 
-  obj.touching = function() {
-    return is_touching;
-  };
-
   obj.ondraw = function(ctx) {
-    ctx.fillStyle = this.color();
+    ctx.fillStyle = this.color;
     ctx.shadowBlur = 20.0;
     ctx.shadowColor = 'black';
-    ctx.fillRect(0,0,this.width(),this.height());
+    ctx.fillRect(0,0,this.width,this.height);
 
-    if (this.label()) {
+    if (this.label) {
       ctx.fillStyle = 'black';
       ctx.shadowBlur = 0;
-      ctx.fillText(this.label(), 20, 20);
+      ctx.fillText(this.label, 20, 20);
     }
 
-    if (this.touching()) {
+    if (is_touching) {
       ctx.strokeStyle = 'black';
       ctx.lineWidth = 3.0;
-      ctx.strokeRect(0, 0, this.width(), this.height());
+      ctx.strokeRect(0, 0, this.width, this.height);
     }
 
     ctx.fillStyle = 'black';
@@ -45,7 +40,7 @@ function rect(options) {
       var lastpt = points[points.length - 1];
 
       if (is_touching) {
-        ctx.fillStyle = this.color();
+        ctx.fillStyle = this.color;
         ctx.fillRect(lastpt.x + marker_delta, lastpt.y + marker_delta, 10, 10);
 
         ctx.beginPath();
@@ -92,62 +87,62 @@ function rect(options) {
 var app = rect();
 
 var with_capture = app.add(rect({
-  id: c('#anchor1'),
-  x: c(50),
-  y: c(50),
-  width: c(300),
-  height: c(400),
-  color: c('#BF0C43'),
-  interaction: c(true),
-  label: c('interaction=true'),
+  id: '#anchor1',
+  x: 50,
+  y: 50,
+  width: 300,
+  height: 400,
+  color: '#BF0C43',
+  interaction: true,
+  label: 'interaction=true',
 }));
 
 with_capture.add(rect({
-  x: c(50),
-  y: c(50),
-  width: c(100),
-  height: c(100),
-  color: c('#127A97'),
-  interaction: c(true),
-  label: c('child+interaction'),
+  x: 50,
+  y: 50,
+  width: 100,
+  height: 100,
+  color: '#127A97',
+  interaction: true,
+  label: 'child+interaction',
 }));
 
 var without_capture = app.add(rect({
-  x: c(100),
-  y: c(250),
-  width: c(350),
-  height: c(100),
-  color: c('#F9BA15'),
-  interaction: c(false),
-  label: c('interaction = false (see through)'),
+  x: 100,
+  y: 250,
+  width: 350,
+  height: 100,
+  color: '#F9BA15',
+  interaction: false,
+  label: 'interaction = false (see through)',
 }));
 
 var noprop = app.add(rect({
-  id: c('#anchor2'),
-  x: c(250),
-  y: c(100),
-  width: c(300),
-  height: c(100),
-  color: c('#8EAC00'),
-  interaction: c(true),
-  autopropagate: c(false),
-  label: c('interaction = true, autopropagate = false'),
+  id: '#anchor2',
+  x: 250,
+  y: 100,
+  width: 300,
+  height: 100,
+  color: '#8EAC00',
+  interaction: true,
+  autopropagate: false,
+  label: 'interaction = true, autopropagate = false',
 }));
 
 noprop.add(rect({
-  color: c('#452B72'),
-  x: c(20),
-  y: c(50),
-  width: c(150),
-  height: c(30),
+  color: '#452B72',
+  x: 20,
+  y: 50,
+  width: 150,
+  height: 30,
 
 }));
 
 var help = app.add(html({
   x: positioning.relative('#anchor2').right(100),
   y: positioning.relative('#anchor1').top(),
-  width: c(500),
-  height: c(800),
+  width: 500,
+  height: 800,
 }));
 
 help.onload = function(container) {

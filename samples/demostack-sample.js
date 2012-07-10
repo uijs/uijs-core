@@ -1,20 +1,19 @@
 var demostack = require('./lib/demostack');
 var uijs = require('uijs');
 var box = uijs.box;
-var c = uijs.util.constant;
 
 var app = demostack();
 
 var b1 = box({
-  title: c('This is the title of the demo box'),
-  height: c(130),
+  title: 'ThIs is the title of the demo box',
+  height: 130,
 });
 
 var b2 = box({
-  clip: c(true),
-  title: c('The crazy snake'),
-  height: function() { return this.parent.height() - this.y(); },
-  dropVelocity: c(-3.8),
+  clip: true,
+  title: 'ThE crazy snake',
+  height: function() { return this.parent.height - this.y; },
+  dropVelocity: -3.8,
 });
 
 app.add(b1);
@@ -61,7 +60,7 @@ b2.ondraw = function(ctx) {
     ctx.beginPath();
     ctx.moveTo(pt.x, pt.y);
     if (!touching) {
-      pt.y = (points.length - i - self.dropVelocity()) + pt.y + 12.8 * dt * dt;
+      pt.y = (points.length - i - self.dropVelocity) + pt.y + 12.8 * dt * dt;
     }
   });
 };
@@ -93,7 +92,7 @@ b2.onoptions = function(container) {
   container.innerHTML = [
     '<h1>Options for the crazy snake demo</h1>',
     '<label>Drop velocity:</label>',
-    '<input id="velo" type="input" value="' + b2.dropVelocity() + '"><br>',
+    '<input id="velo" type="input" value="' + b2.dropVelocity + '"><br>',
     '<label>Number of points:</label>',
     '<input id="points" type="input" value="' + points_to_keep + '"><br>',
     '<button id="apply">Apply</button>',
@@ -102,7 +101,7 @@ b2.onoptions = function(container) {
   document.getElementById('apply').onclick = function() {
     var v = document.getElementById('velo').value;
     var pts = document.getElementById('points').value;
-    b2.dropVelocity = c(v);
+    b2.dropVelocity = v;
     points_to_keep = parseInt(pts);
     app.closeOptions();
   };

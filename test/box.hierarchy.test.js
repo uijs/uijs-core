@@ -1,7 +1,6 @@
 var assert = require('assert');
 var uijs = require('..');
 var box = uijs.box;
-var c = uijs.util.constant;
 
 /*
 
@@ -67,12 +66,12 @@ assert.equal(parent.all().length, 0);
 // box.children[]
 var parent2 = box({ 
   children: [
-    box({ id: c('#child1'), c1: true }),
+    box({ id: '#child1', c1: true }),
     box({ 
-      id: c('#child2'),
+      id: '#child2',
       c2: true,
       children: [ 
-        box({ id: c('#grandchild1'), gc: true }) 
+        box({ id: '#grandchild1', gc: true }) 
       ],
     }),
   ], 
@@ -100,11 +99,11 @@ assert.equal(parent2.all().length, 0);
 // box.rest()
 var parent3 = box({
   children: [
-    box({ id: c('#c1') }),
-    box({ id: c('#c2') }),
-    box({ id: c('#c3') }),
-    box({ id: c('#c4') }),
-    box({ id: c('#c5') }),
+    box({ id: '#c1' }),
+    box({ id: '#c2' }),
+    box({ id: '#c3' }),
+    box({ id: '#c4' }),
+    box({ id: '#c5' }),
   ],
 });
 
@@ -112,29 +111,29 @@ var c1 = parent3.query('#c1');
 var c2 = parent3.query('#c2');
 var c4 = parent3.query('#c4');
 
-assert.deepEqual(c1.rest().map(function(x) { return x.id(); }), [ '#c2', '#c3', '#c4', '#c5' ]);
-assert.deepEqual(c2.rest().map(function(x) { return x.id(); }), [ '#c1', '#c3', '#c4', '#c5' ]);
-assert.deepEqual(c4.rest().map(function(x) { return x.id(); }), [ '#c1', '#c2', '#c3', '#c5' ]);
+assert.deepEqual(c1.rest().map(function(x) { return x.id; }), [ '#c2', '#c3', '#c4', '#c5' ]);
+assert.deepEqual(c2.rest().map(function(x) { return x.id; }), [ '#c1', '#c3', '#c4', '#c5' ]);
+assert.deepEqual(c4.rest().map(function(x) { return x.id; }), [ '#c1', '#c2', '#c3', '#c5' ]);
 
 // box.tree()
 
 var root = box({
-  id: c('#1'),
+  id: '#1',
   children: [
-    box({ id: c('#1.1') }),
-    box({ id: c('#1.2') }),
-    box({ id: c('#1.3'), children: [
-      box({ id: c('#1.3.1') }),
-      box({ id: c('#1.3.2') }),
-      box({ id: c('#1.3.3') }),
+    box({ id: '#1.1' }),
+    box({ id: '#1.2' }),
+    box({ id: '#1.3', children: [
+      box({ id: '#1.3.1' }),
+      box({ id: '#1.3.2' }),
+      box({ id: '#1.3.3' }),
     ] }),
-    box({ id: c('#1.4'), children: [
-      box({ id: c('#1.4.1') }),
-      box({ id: c('#1.4.2'), children: [
-        box({ id: c('#1.4.2.1') }),
-        box({ id: c('#1.4.2.2') }),
+    box({ id: '#1.4', children: [
+      box({ id: '#1.4.1' }),
+      box({ id: '#1.4.2', children: [
+        box({ id: '#1.4.2.1' }),
+        box({ id: '#1.4.2.2' }),
       ] }),
-      box({ id: c('#1.4.2') }),
+      box({ id: '#1.4.2' }),
     ] }),
   ],
 });
