@@ -11,7 +11,7 @@
     "canvas": "0.12.1"
   },
   "optionalDependencies": {},
-  "description": "A controvertial canvas based ui system for mobile apps",
+  "description": "A controvertial canvas based ui system for real mobile apps",
   "main": "./lib/index",
   "scripts": {
     "test": "cd test && ./run.sh"
