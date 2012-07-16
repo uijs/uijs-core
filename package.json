@@ -6,7 +6,6 @@
   "engines": {},
   "dependencies": {},
   "devDependencies": {
-    "uijs-devtools": "*",
     "cantest": "0.0.2",
     "canvas": "0.12.1"
   },
