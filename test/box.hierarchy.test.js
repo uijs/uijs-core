@@ -20,9 +20,13 @@ var child2 = box();
 var grandchild1 = box();
 
 // create tree (tests box.add())
-assert.equal(parent.add(child1), child1);
-assert.equal(parent.add(child2), child2);
-assert.equal(child2.add(grandchild1), grandchild1);
+assert.ok(parent.children.push(child1));
+assert.ok(parent.add(child2));
+assert.ok(child2.children.push(grandchild1));
+assert(parent.children.length === 2);
+assert(child2.children.length === 1);
+assert(parent.children[0] === child1);
+assert(parent.children[1] === child2);
 
 // assert relationships
 assert.equal(child1.parent, parent);
@@ -155,3 +159,42 @@ var expected = [
 ].join('\n');
 
 assert.equal(root.tree(), expected);
+
+// functional behavior of `children`
+
+parent.children = function() {
+  return [ 
+    box({ id: 'ch1' }),
+    box({ id: 'ch2' }),
+  ]
+};
+
+assert(parent.children.length === 2);
+assert(parent.children[0].id === 'ch1');
+assert(parent.children[1].id === 'ch2');
+
+parent.children = [
+  box({ id: 'mybox1' }),
+  box({ id: 'mybox2' }),
+  box({ id: 'mybox3' }),
+  box({ 
+    id: 'mybox4', 
+    children: [
+      box({ id: 'mybox4.1' }),
+    ],
+  }),
+];
+
+assert(parent.children.length === 4);
+assert(parent.query('mybox2').id === 'mybox2');
+assert(parent.get('mybox4').id === 'mybox4');
+assert(parent.query('mybox4.1').id === 'mybox4.1');
+assert(parent.query('mybox4.1').parent.id === 'mybox4');
+
+// parent does not work in this situation
+var p2 = box();
+var p2_child = box();
+p2.children.push(p2_child);
+assert(p2_child.parent);
+p2.children; // just call the getter so that parent is set
+assert(p2_child.parent);

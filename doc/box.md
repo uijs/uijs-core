@@ -25,7 +25,7 @@ Example:
     });
 
 
-## Attributes
+## Properties
 
 The base box has the following attributes and defaults:
 
@@ -48,6 +48,14 @@ The base box has the following attributes and defaults:
     (default `null`).
  * `debug` - will output `console.log` output for every interaction event.
     
+### box.properties
+
+ > TODO
+
+### box.properties.onchange(prop, fn)
+
+ > TODO
+
 ## Events
 
 See the [events.EventEmitter](#events.md) module for details on how to emit and subscribe to events.
@@ -58,6 +66,7 @@ See the [events.EventEmitter](#events.md) module for details on how to emit and 
     manipulate external objects via diffs.
  * `child` with `function(child)`. Called every time a child is added to the
     box.
+
 
 ## Drawing
 
