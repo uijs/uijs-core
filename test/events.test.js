@@ -1,8 +1,8 @@
 var assert = require('assert');
 var uijs = require('..');
-var box = uijs.box;
+var EventEmitter = uijs.events.EventEmitter;
 
-var mybox = box();
+var mybox = new EventEmitter();
 
 var queue = [];
 
@@ -54,3 +54,27 @@ queue = [];
 mybox.removeAllListeners('E2');
 mybox.emit('E2', 77, 66);
 assert.deepEqual(queue, []);
+
+// forward
+
+var ee2 = new EventEmitter();
+
+// forward all events from `mybox` to `ee2`.
+mybox.forward(ee2);
+
+var x_emitted = 0;
+
+ee2.on('x', function(val) {
+  assert.equal(val, 1234);
+  x_emitted++;
+});
+
+mybox.emit('x', 1234);
+mybox.emit('y');
+
+assert(x_emitted === 1);
+
+mybox.unforward(ee2);
+mybox.emit('x', 1234);
+
+assert.equal(x_emitted, 1); // expect x_emitted to stay 1 because of the unforward

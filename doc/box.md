@@ -7,7 +7,7 @@ The `uijs.box` module is the core of _uijs_. A box represents a rectangluarly bo
  * [Events](#events)
  * [Drawing](#drawing)
  * [Hierarchy](#hierarchy)
- * [EventEmitter](#eventemitter)
+ * [Animation](#animation)
  * [Derivation](#derivation)
 
 ## Construction
@@ -50,7 +50,7 @@ The base box has the following attributes and defaults:
     
 ## Events
 
-See the [EventEmitter](#EventEmitter) chapter below for details on how to emit and subscribe to events.
+See the [events.EventEmitter](#events.md) module for details on how to emit and subscribe to events.
 
  * `touchstart`, `touchmove`, `touchend` with `function(e)` - Interaction events where 
    `e.x` and `e.y` are local coordinates.
@@ -306,49 +306,51 @@ may return `false` to filter out a child from the search (e.g. filter out childr
 
 _Usually this is called by the system._
 
-## EventEmitter
+## Properties
 
-Borrows from the node.js `EventEmitter`, this is a simple pub/sub system that allows anyone to subscribe and publish arbitrary events on a box.
+A box supports a few useful capabilities related to properties.
+
+### box.properties
+
+An `Array` that contains the names of all the properties defined while the box
+was initialized. This can be useful to reflect on the box's properties, serialize them, etc.
 
 Example:
 
-    var mybox = box();
-    
-    mybox.on('myevent', function(a, b) {
-        console.log('myevent', a, b);
+    > var mybox = box();
+    > mybox.properties
+    [ 'x',
+      'y',
+      'width',
+      'height',
+      'rotation',
+      'visible',
+      'clip',
+      'alpha',
+      'debug',
+      'interaction',
+      'autopropagate',
+      'id' ]
+
+## Animation
+
+It is easy to animate any box property using the `box.animate` function.
+
+### box.animate(properties, options)
+
+Where `properties` is a hash of property value targets and `options` are options
+passed to the various animation functions.
+
+For example:
+
+    var mybox = box({ x: 0, y: 0 });
+
+    mybox.on('click', function() {
+      mybox.animate({ x: 100, y: 100 });
     });
-    
-    mybox.emit('myevent', 20, 30);
-    mybox.emit('myevent', 30, 40);
 
-Output will be:
-
-    myevent 20 30
-    myevent 30 40
-
-### box.emit(event, ..args..)
-
-Calls all handlers subscribed to `event`. All arguments are passed to the handler. Handler is called with `this` bound to the box.
-
-### box.on(event, fn)
-
-Subscribes a handler function `fn` to be called when the event `event` is emitted.
-
-### box.removeListener(event, fn)
-
-Removes the function `fn` as a handler for event `event`. Note that you should pass along the same function passed to `on(event, fn)`.
-
- > TODO: maybe return a cookie from `on` and allow passing it here as well to avoid the need to pass the same function?
-
-### box.removeAllListeners(event)
-
-Clears all the handlers for the event `event`. After this call, no handler will be invoked when `event` is emitted.
-
-### box.once(event, fn)
-
-_Not implemented (yet)_
-
-Calls `fn` only the next time the event `event` is emitted. This is useful for one-off handling.
+This will bind animation functions to the `x` and `y` properties so that they
+will change from their current value (be it `0` on start or any other) to `100`.
 
 ## Derivation
 

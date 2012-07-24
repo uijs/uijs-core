@@ -15,6 +15,9 @@ propertize(obj, function(attr) {
   return !(attr.indexOf('on') === 0 || attr.indexOf('_') === 0);
 });
 
+// verify that `obj.properties` contains the properties.
+assert.deepEqual(obj.properties, [ 'prop1', 'prop2' ]);
+
 /// verify getters
 assert(obj.prop1 === 5);  // plain old value
 assert(obj.prop2 === 10); // result of a function call
