@@ -1,8 +1,11 @@
 var uijs = require('uijs');
-var c = uijs.util.constant;
 var defaults = uijs.util.defaults;
 var min = uijs.util.min;
 var max = uijs.util.max;
+var positioning = uijs.positioning;
+var box = uijs.box;
+
+function c(x) { return function() { return x; }; }
 
 function calculateDirection(velocity){
   return Math.abs(velocity) / velocity;
@@ -73,6 +76,7 @@ exports.basicSliderAnimation = function(options){
 }
 
 exports.carouselAnimation = function(carouselleftBase, carouselRightBase, initialPosition, initialVelocity, inSpringMode, initialSpringBase, options){
+
   options = options || {};
   var elasticity = options.elasticity || c(65);
   var springFriction = options.springFriction || c(0.993);
@@ -109,14 +113,14 @@ exports.carouselAnimation = function(carouselleftBase, carouselRightBase, initia
       swf.spring_base = swf.position;
     }
   };
-      
+
   var now = Date.now();
   var options = {
     initialPosition: initialPosition,
     initialVelocity: initialVelocity,
     delta_ts: delta_ts,
     time_unit: time_unit,
-    acceleration: function(){  
+    acceleration: function(){
       determineSpring();
       if (swf.spring) {
         return -((swf.position - swf.spring_base) * elasticity());
@@ -144,14 +148,14 @@ exports.carouselAnimation = function(carouselleftBase, carouselRightBase, initia
 exports.carouselBehavior = function(spring_left_base, spring_right_base, spring_max_stretch, eventHistory, onClick, options){
   options = options || {};
 
-  var last_touch_position;
+  var last_touch_position = 0;
   var last_position = 0;
   var last_timestamp;
   var last_speed; // In pixels per second
   var touching = false;
   var moving = false;
   var spring = false;
-  var spring_base = 0;  
+  var spring_base = 0;
 
   return function(){
     while (eventHistory.length > 0){
@@ -165,7 +169,8 @@ exports.carouselBehavior = function(spring_left_base, spring_right_base, spring_
         touching = true;
         moving = false;
         spring = false;
-      };
+      }
+
       if (oldestEvent.name === "touchmove") {
         touching = true;
         moving = true;
@@ -188,14 +193,17 @@ exports.carouselBehavior = function(spring_left_base, spring_right_base, spring_
         if(last_speed > 3500){
           last_speed = 3500;
         }
+
         last_position += delta_position;
-      };
+      }
+
       if (oldestEvent.name === "touchend") {
         touching = false;
         if (!moving) { //We've detected a click without a move!!
-           onClick(previous_touch_position, this);
-         };
-       };
+          console.log('click', previous_touch_position);
+          onClick(previous_touch_position, this);
+        }
+      }
     }
       
     var swf;
@@ -209,85 +217,89 @@ exports.carouselBehavior = function(spring_left_base, spring_right_base, spring_
       last_timestamp = now;
       last_speed = swf.velocity;
     }
+
     return last_position;
   }
 }
-
 
 module.exports = function(options) {
   var eventHistoryX = [];
   var eventHistoryY = [];
 
-  var blackStrip = uijs.view({
-    fillStyle: c('black'),
-    width: function (){
+  var blackStrip = box({
+    fillStyle: 'black',
+    width: function() {
       var self = this;
-      return self.parent.width();
+      return self.parent.width;
     },
-    height: c(100),
-    x: c(0),
-    y: function(){
+    height: 100,
+    x: 0,
+    y: function() {
       var self = this;
-      return (self.parent.height() / 2) - (self.height() / 2);
+      return (self.parent.height / 2) - (self.height / 2);
     },
-    layout: uijs.layouts.none(),
   });
 
-  var imageStrip = uijs.view({
+  var imageStrip = box({
     images: options.images,
-    fillStyle: c('black'),
-    width: function (){
-      var self = this;
-      return self.parent.width();
-    },
-    height: c(100),
-    last_x: 0,
-    last_x_left_offset: 0,
-    getPictureIndexFromParentCoords: function(x){
-      var self = this;
-      var x_on_image_strip = -self.last_x + x;
-      var base_index = 0;
-      var x = -self.last_x_left_offset;
-      for (var i = 0; i < self.images().length; i++){
-        var image = self.images()[i]();
-        x += image.widthh;
-        if (x > x_on_image_strip) {
-          base_index = i;
-          break;
-        };
-      }
-      return base_index;
-    },
-    enlarged_image_index: 0,
-    enlargement_size: 0,
-    onClick: function(position, self){
-      self.images()[self.enlarged_image_index]().unselect();
-      self.enlarged_image_index = self.getPictureIndexFromParentCoords(position);
-      self.images()[self.enlarged_image_index]().select();
-      self.enlargement_size = 1;
-    },
-    calculateNewX: function(){
-      var self = this;
-      self.calculateNewX = exports.carouselBehavior(c(self.imageStripBuff.x), c(self.width() - self.imageStripBuff.width), c(300), eventHistoryX, self.onClick);
-      return self.calculateNewX();
-    },    
-    x: function(){
-      var self = this;
-      self.last_x = self.calculateNewX();
-      return self.last_x;
-    },
-    calculateNewY: function(){
-      var self = this;
-      self.calculateNewY = exports.carouselBehavior(c(self.imageStripBuff.y), c(self.height() - self.imageStripBuff.height), c(300), eventHistoryY, self.onClick);
-      return self.calculateNewY();
-    },    
-    y: function(){
-      var self = this;
-      self.last_y = self.calculateNewY();
-      return self.last_y;
-    },
-    //y: c(0),
+    fillStyle: 'black',
+    width: positioning.parent.width(),
+    height: 100
   });
+
+  imageStrip.last_x = 0;
+  
+  imageStrip.last_x_left_offset = 0;
+
+  imageStrip.getPictureIndexFromParentCoords = function(x) {
+    var self = this;
+    var x_on_image_strip = -self.last_x + x;
+    var base_index = 0;
+    var x = -self.last_x_left_offset;
+    for (var i = 0; i < self.images.length; i++){
+      var image = self.images[i]();
+      x += image.widthh;
+      if (x > x_on_image_strip) {
+        base_index = i;
+        break;
+      };
+    }
+    return base_index;
+  };
+
+  imageStrip.enlarged_image_index = 0;
+  imageStrip.enlargement_size = 0;
+
+  imageStrip.onClick = function(position, self) {
+    self.images[self.enlarged_image_index]().unselect();
+    self.enlarged_image_index = self.getPictureIndexFromParentCoords(position);
+    self.images[self.enlarged_image_index]().select();
+    self.enlargement_size = 1;
+  };
+    
+  imageStrip.calculateNewX = function() {
+    var self = this;
+    self.calculateNewX = exports.carouselBehavior(c(self.imageStripBuff.x), c(self.width - self.imageStripBuff.width), c(300), eventHistoryX, self.onClick);
+    return self.calculateNewX();
+  };
+
+  imageStrip.x = function(){
+    var self = this;
+    self.last_x = self.calculateNewX();
+    return self.last_x;
+  };
+
+  imageStrip.calculateNewY = function() {
+    var self = this;
+    self.calculateNewY = exports.carouselBehavior(c(self.imageStripBuff.y), c(self.height - self.imageStripBuff.height), c(300), eventHistoryY, self.onClick);
+    return self.calculateNewY();
+  };
+
+  imageStrip.y = function() {
+    var self = this;
+    self.last_y = self.calculateNewY();
+    return self.last_y;
+  };
 
   var base = {
     ondraw: blackStrip.ondraw
@@ -295,7 +307,7 @@ module.exports = function(options) {
 
   imageStrip.setupImages = function(){
     var self = this;
-    self.images().forEach(function(img) {
+    self.images.forEach(function(img) {
       self = this;
       var i = img();
       i.growing = false;
@@ -406,7 +418,7 @@ module.exports = function(options) {
       self.imageStripBuff = document.createElement("canvas");
       self.imageStripBuff.x = 0;
       self.imageStripBuff.y = 0;
-      self.imageStripBuff.width = self.images().length * 50;
+      self.imageStripBuff.width = self.images.length * 50;
       self.imageStripBuff.height = 100;
     };
     
@@ -418,7 +430,7 @@ module.exports = function(options) {
 
     //Calculate the left x offset for each image and also animate all the images
     // TODO: there has got to be a better way to do this
-    self.images().forEach(function(img) {
+    self.images.forEach(function(img) {
       var i = img();
       i.animate();
       x_left_offset += (i.widthh - 50) / 2;
@@ -427,7 +439,7 @@ module.exports = function(options) {
     self.last_x_left_offset = x_left_offset; 
     var x = -x_left_offset;
     
-    self.images().forEach(function(img) {
+    self.images.forEach(function(img) {
       var i = img();
       ctx.drawImage(i, x, i.yy, i.widthh, i.heightt);
       index++;
@@ -435,19 +447,17 @@ module.exports = function(options) {
     });
   };
 
-
   imageStrip.createBuffer();
 
-  blackStrip.ondraw = function(context) {
+  blackStrip.ondraw = function(ctx) {
     var self = this;
-    
-    context.fillRect(0, 0, self.width(), self.height());
+    ctx.fillRect(0, 0, self.width, self.height);
   };
 
   var ts = 0;
   var frames = 0;
   
-  imageStrip.ondraw = function(context) {
+  imageStrip.ondraw = function(ctx) {
     var self = this;
     var newTime = Date.now();
     frames++;
@@ -457,35 +467,32 @@ module.exports = function(options) {
     else{
       if ((newTime - ts) > 1000) {
         console.log("fps: " + frames);
-        self.root().log("fps: " + frames);
         frames = 0;
         ts = newTime;
       };
     };
     
     self.createBuffer();
-    context.drawImage(self.imageStripBuff, 0, 0);
-
+    ctx.drawImage(self.imageStripBuff, 0, 0);
   };
 
   blackStrip.on('touchstart', function(coords) {
+    this.startCapture();
     eventHistoryX.push({name: 'touchstart', position: coords.x, timestamp: Date.now()});
     eventHistoryY.push({name: 'touchstart', position: coords.y, timestamp: Date.now()});
   });
 
   blackStrip.on('touchmove', function(coords) {
+    if (!this.capturing()) return;
     eventHistoryX.push({name: 'touchmove', position: coords.x, timestamp: Date.now()});
     eventHistoryY.push({name: 'touchmove', position: coords.y, timestamp: Date.now()});
   });
 
   blackStrip.on('touchend', function(coords) {
+    this.stopCapture();
     eventHistoryX.push({name: 'touchend', position: coords.x ? coords.x : 0, timestamp: Date.now()});
     eventHistoryY.push({name: 'touchend', position: coords.y ? coords.y : 0, timestamp: Date.now()});
   });
-
-  blackStrip.on('mousedown', function(e) { blackStrip.emit('touchstart', e); });
-  blackStrip.on('mousemove', function(e) { blackStrip.emit('touchmove', e); });
-  blackStrip.on('mouseup', function(e) { blackStrip.emit('touchend', e); });
 
   blackStrip.add(imageStrip);
 
