@@ -77,7 +77,7 @@ module.exports = function(options) {
 
   imageStrip.calculateNewY = function() {
     var self = this;
-    self.calculateNewY = carouselBehavior(c(self.imageStripBuff.y), c(self.height - self.imageStripBuff.height), c(300), eventHistoryY, self.onClick);
+    self.calculateNewY = carouselBehavior(c(self.imageStripBuff.y), c(self.height - self.imageStripBuff.height), c(300), eventHistoryY, function() {});
     return self.calculateNewY();
   };
 
