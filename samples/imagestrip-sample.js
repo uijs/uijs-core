@@ -6,12 +6,20 @@ var box = uijs.box;
 
 var app = box();
 
-app.fillStyle = 'black';
+
+var firstTime = true;
 
 app.ondraw = function(ctx){
   var self = this;
-  ctx.fillRect(0, 0, self.width, self.height);
-}
+  if (firstTime){
+  	//app.fillStyle = 'blue';
+  	ctx.fillStyle = 'blue';
+  	ctx.fillRect(0, 0, self.width, self.height);
+  	firstTime = false;
+  }
+};
+
+app.clip = true;
 
 var car = carousel({
   images: images.map(function(url) {

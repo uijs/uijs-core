@@ -13,6 +13,7 @@ module.exports = function(options) {
   var eventHistoryY = [];
 
   var blackStrip = box({
+    clip: true,
     fillStyle: 'black',
     width: function() {
       var self = this;
