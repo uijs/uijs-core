@@ -1,3 +1,4 @@
+
 var assert = require('assert');
 var uijs = require('..');
 var positioning = uijs.positioning;
@@ -12,12 +13,12 @@ var b1 = box({
   height: 555,
 });
 
-assert.equal(positioning.left(b1)(), 50);
-assert.equal(positioning.top(b1)(), 230);
-assert.equal(positioning.width(b1)(), 123);
-assert.equal(positioning.height(b1)(), 555);
-assert.equal(positioning.right(b1)(), 50 + 123);
-assert.equal(positioning.bottom(b1)(), 230 + 555);
+assert.equal(positioning.left(b1), 50);
+assert.equal(positioning.top(b1), 230);
+assert.equal(positioning.width(b1), 123);
+assert.equal(positioning.height(b1), 555);
+assert.equal(positioning.right(b1), 50 + 123);
+assert.equal(positioning.bottom(b1), 230 + 555);
 
 
 // positioning.parent.xxx([delta])
