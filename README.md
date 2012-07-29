@@ -48,7 +48,7 @@ Create a file named `hello.js`:
     
         // fill the box
         ctx.fillStyle = '#1C8BDC';
-        ctx.fillRect(0, 0, this.width(), this.height());
+        ctx.fillRect(0, 0, this.width, this.height;
     
         // draw text
         ctx.fillStyle = 'white';
