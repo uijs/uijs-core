@@ -8,12 +8,12 @@ function rect(options) {
   options = defaults(options, {
     color: 'white',
     label: false,
+    touching: false,
+    points: [],
   });
 
   var obj = box(options);
 
-  var is_touching = false;
-  var points = [];
   var marker_delta = Math.round(Math.random() * 100) % 10 - 5;
 
   obj.ondraw = function(ctx) {
@@ -28,7 +28,7 @@ function rect(options) {
       ctx.fillText(this.label, 20, 20);
     }
 
-    if (is_touching) {
+    if (this.touching) {
       ctx.strokeStyle = 'black';
       ctx.lineWidth = 3.0;
       ctx.strokeRect(0, 0, this.width, this.height);
@@ -36,17 +36,17 @@ function rect(options) {
 
     ctx.fillStyle = 'black';
 
-    if (points.length > 0) {
-      var lastpt = points[points.length - 1];
+    if (this.points.length > 0) {
+      var lastpt = this.points[this.points.length - 1];
 
-      if (is_touching) {
+      if (this.touching) {
         ctx.fillStyle = this.color;
         ctx.fillRect(lastpt.x + marker_delta, lastpt.y + marker_delta, 10, 10);
 
         ctx.beginPath();
         ctx.moveTo(lastpt.x, lastpt.y);
-        for (var i = points.length - 1; i >= 0; i--) {
-          var pt = points[i];
+        for (var i = this.points.length - 1; i >= 0; i--) {
+          var pt = this.points[i];
           if (!pt) continue;
           ctx.lineTo(pt.x, pt.y, 5, 5);
         }
@@ -60,25 +60,25 @@ function rect(options) {
 
   function addpt(pt) {
     if (!pt || !pt.x || !pt.y) return;
-    points.push(pt);
-    if (points.length > 10) points.shift();
+    this.points.push(pt);
+    if (this.points.length > 10) this.points.shift();
   }
 
   obj.on('touchstart', function(pt) {
-    is_touching = true;
-    addpt(pt);
+    this.touching = true;
+    addpt.call(this, pt);
     this.startCapture();
   });
 
   obj.on('touchmove', function(pt) {
-    addpt(pt);
+    addpt.call(this, pt);
   });
 
   obj.on('touchend', function(pt) {
-    addpt(pt);
-    is_touching = false;
+    addpt.call(this, pt);
+    this.touching = false;
     this.stopCapture();
-    points = [];
+    this.points = [];
   });
 
   return obj;
