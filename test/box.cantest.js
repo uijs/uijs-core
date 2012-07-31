@@ -3,13 +3,7 @@ var box = uijs.box;
 var defaults = uijs.util.defaults;
 var positioning = uijs.positioning;
 var buffers = uijs.buffers;
-
-
 var Canvas = require('canvas');
-
-buffers.factory = function() {
-  return new Canvas();
-};
 
 function rect(options) {
 
@@ -64,6 +58,7 @@ var app = rect({
           x: 5,
           y: positioning.prev.bottom(10),
           color: 'purple',
+          clip: true,
           label: 'this is a clipped child',
         }),
       ]
