@@ -1,10 +1,8 @@
-# uijs
-
 A web UI system for real mobile apps.
 
 [Stability](http://nodejs.org/api/documentation.html#documentation_stability_index): 1 - Experimental
 
-## Goal
+# Goal
 
 Our goal is to create a UI software stack for mobile apps that looks and behaves like native mobile UI. Current stacks like [jQuery Mobile](http://jquerymobile.com/), [jQTouch](http://www.jqtouch.com) and [Sencha Touch](http://www.sencha.com/products/touch) are doing an excellent job with HTML5. We thought it would be interesting to try out something a little different and use the HTML5 canvas as our basis for the entire UI system.
 
@@ -16,9 +14,7 @@ uijs's codebase is maintained on [github](https://github.com) (of course) and pu
 
 This repository contains only the uijs __core__ module. It consists only of the basic mechanisms that can be used to build uijs modules (UI widgets) and apps. We believe in the ["batteries are not included"](https://github.com/joyent/node/wiki/node-core-vs-userland) philosophy employed in projects like [node.js](http://nodejs.org). For frontend libraries, this is even more critical because one would want to keep the footprint of their app as small as possible, so we didn't want to put too much into the core library.
 
-## Getting started
-
-### Installing
+# Installing
 
 To get started first installl the [development tools](https://github.com/eladb/uijs-devtools) globally:
 
@@ -31,7 +27,7 @@ Now, create a directory for your app/module and install uijs there:
     
 This will create a `node_modules/uijs` directory with the uijs core module.
 
-### Hello, uijs!
+# Hello, uijs!
 
 uijs apps/modules are CommonJS libraries (`require()`) that export a uijs [box](#box). A box is a visual rectanglurly-bound element that can draw itself and may have child boxes. In uijs everything is a box.
 
@@ -66,7 +62,7 @@ Create a file named `hello.js`:
 
 We create a box by calling `box()` and set it's `ondraw` function to use `ctx` (which is simply a [CanvasRenderingContext2D](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasrenderingcontext2d)) to print the text "Hello, uijs" at 100, 100 (relative to the box's origin).
 
-### Building
+# Building
 
 Now, let's build and open this app.
 
@@ -92,7 +88,7 @@ Open `dist/hello.uijs.html` with a web browser and you should see something like
 
 Yeah!
 
-### Working iteratively
+# Working iteratively
 
 Passing `-w` to `uijs build` will start a file watch on the directory and automatically rebuild when your code changes, so you can work iteratively and refresh the browser window.
 
@@ -108,7 +104,7 @@ Passing `-w` to `uijs build` will start a file watch on the directory and automa
     
 Pretty useful!
 
-### Running on a mobile device
+# Running on a mobile device
 
 uijs is all about mobile apps, so we made it super easy to serve your app for development and access it through the local network via your mobile browser.
 
@@ -127,9 +123,9 @@ Since most mobile browsers do not have a console window, if you use `console.log
 
 Since we used `-w`, the file watch will also work in this mode.
 
-## For contributors
+# For contributors
 
-### Running tests
+## Tests
 
 `npm test` will run all tests. These are the regression tests that should be executed before commiting code into the repository.
 
@@ -154,9 +150,9 @@ Running all tests:
     Running catest tests
     Running functional tests
 
-### Running benchmarks
+## Benchmarks
 
-Benchmarks are simple uijs apps (export a `box`). All benchmarks are under the `benchmarks` directory.
+Benchmarks are uijs apps (export a `box`). All benchmarks are under the `benchmarks` directory.
 To run a benchmark, use the uijs devtool `bench` or `prof` commands. By default the benchmark will run for 5 seconds. If `prof` is used, it will show a profiler output.
 
     $ cd benchmarks
@@ -167,6 +163,20 @@ To run a benchmark, use the uijs devtool `bench` or `prof` commands. By default 
     ... # benchmark results
     ...
     the-box.js 36176.4fps
+
+Note that since benchmarks are regular uijs apps, they can usually be also opened from the browser. The fps measurements will be outputed to the console.
+
+    $ cd benchmarks
+    $ uijs debug the-jumping-box.js
+    http://localhost:5000
+
+### Results
+
+_All results are from MacBook Air 1.8 GHz i7 4GB_
+
+ * b87c5582d2 (Aug 1, 2012)
+   * the-box.js 13592fps
+   * the-jumping-box.js 141.4fps
 
 ### Viewing samples
 
