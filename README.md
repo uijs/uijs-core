@@ -154,6 +154,20 @@ Running all tests:
     Running catest tests
     Running functional tests
 
+### Running benchmarks
+
+Benchmarks are simple uijs apps (export a `box`). All benchmarks are under the `benchmarks` directory.
+To run a benchmark, use the uijs devtool `bench` or `prof` commands. By default the benchmark will run for 5 seconds. If `prof` is used, it will show a profiler output.
+
+    $ cd benchmarks
+    $ uijs bench the-box.js
+    the-box.js 34303.2fps
+    $ uijs prof the-box.js
+    ...
+    ... # benchmark results
+    ...
+    the-box.js 36176.4fps
+
 ### Viewing samples
 
 Samples are simple uijs modules. In order to a sample, point `uijs build` to the sample file and open it (you will need to [install](#installing) the devtools of course):
