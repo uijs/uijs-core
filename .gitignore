@@ -3,3 +3,5 @@ node_modules
 *.uijs.html
 .tmp*
 dist
+v8.log
+npm-debug.log
