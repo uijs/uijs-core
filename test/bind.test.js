@@ -26,14 +26,16 @@ assert(obj.xoo.$bind);
 // set up a watch on `foo`
 
 var foo_changed = -1;
+var foo_changed_bound = null;
 obj.watch('foo', function(new_foo, bound) {
   foo_changed = new_foo;
+  foo_changed_bound = bound;
 });
 
 // assign the result of bind back to `foo`. should work
 obj.foo = bind(obj, 'foo', function() { return 88 });
 assert(obj.foo === 88);
-assert(foo_changed === 88);
+assert(foo_changed_bound && typeof foo_changed === 'function');
 
 // bench(obj, 'x');
 
@@ -64,7 +66,7 @@ assert(koo_changed === 777);
 obj.koo = 444;
 assert(koo_changed === 444);
 bind(obj, 'koo', function() { return 'yeah!' });
-assert(koo_changed === 'yeah!');
+assert(typeof koo_changed === 'function');
 
 // ----
 
