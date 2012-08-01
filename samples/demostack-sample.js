@@ -1,6 +1,7 @@
 var demostack = require('./lib/demostack');
 var uijs = require('uijs');
 var box = uijs.box;
+var bind = uijs.bind;
 
 var app = demostack();
 
@@ -12,7 +13,7 @@ var b1 = box({
 var b2 = box({
   clip: true,
   title: 'ThE crazy snake',
-  height: function() { return this.parent.height - this.y; },
+  height: bind(b2, 'height', function() { return this.parent.height - this.y; }),
   dropVelocity: -3.8,
 });
 

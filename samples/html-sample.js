@@ -2,13 +2,14 @@ var uijs = require('uijs');
 var box = uijs.box;
 var positioning = uijs.positioning;
 var animate = uijs.animation;
+var bind = uijs.bind;
 
 var html = uijs.html;
 
 // the `color` attribute is a function that returns
 // the color based on the current HTML <option> selection.
 var app = box({ 
-  color: function() {
+  color: bind(app, 'color', function() {
     var sel = document.getElementById('color');
 
     // since the inner DOM is not loaded immediately, we must
@@ -16,7 +17,7 @@ var app = box({
     if (!sel) return 'red';
 
     return sel.options[sel.selectedIndex].value;
-  },
+  }),
 });
 
 app.ondraw = function(ctx) {
@@ -26,7 +27,7 @@ app.ondraw = function(ctx) {
 };
 
 // This is where we add the `html` box. Pretty much self explainatory.
-app.add(html({
+var htmlBox = html({
   html: '<h1>select color!</h1>',
   onload: function(container) {
     container.innerHTML += [
@@ -44,11 +45,13 @@ app.add(html({
       alert('you clicked me man!')
     };
   },
-  x: animate(0, 200, {duration:1000}),
-  y: animate(0, 100, {duration:1000}),
+  x: bind(htmlBox, 'x', animate(0, 200, {duration:1000})),
+  y: bind(htmlBox, 'y', animate(0, 100, {duration:1000})),
   width: 200,
   height: 200,
-}));
+});
+
+app.add(htmlBox);
 
 
 module.exports = app;

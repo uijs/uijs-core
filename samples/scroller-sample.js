@@ -2,10 +2,11 @@ var uijs = require('uijs');
 var positioning = uijs.positioning;
 var scroller = uijs.scroller;
 var box = uijs.box;
+var bind = uijs.bind;
 
 function stripes() {
   var obj = box({
-    width: positioning.parent.width(),
+    width: bind(obj, 'width', positioning.parent.width()),
     height: 10000,
     interaction: false,
   });
