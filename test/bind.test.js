@@ -20,7 +20,7 @@ assert(obj.foo, 'hello');
 
 // this will not work because `xoo` is not bound.
 obj.xoo = foobind;
-assert(obj.xoo.$bind);
+assert(obj.xoo.$bindPromise);
 
 
 // set up a watch on `foo`
