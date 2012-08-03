@@ -5,16 +5,16 @@ var box = uijs.box;
 var override = uijs.util.override;
 var html = uijs.html;
 var animate = uijs.animation;
+var bind = uijs.bind;
 
 function label(options) {
-  options = defaults(options, {
+  var obj = box(defaults(options, {
     title: false,
     lineHeight: 1,
     height: 30,
     backgroundColor: '#0191C8',
-    width: positioning.parent.width(),
-  });
-  var obj = box(options);
+    width: bind(obj, 'width', positioning.parent.width()), 
+  }));
   obj._is_adornment = true;
   obj.ondraw = function(ctx) {
 
@@ -45,19 +45,19 @@ module.exports = function(options) {
   var obj = box(options);
   obj.x = 0;
   obj.y = 0;
-  obj.width = positioning.parent.width();
-  obj.height = positioning.parent.height();
+  obj.width = bind(obj, 'width', positioning.parent.width());
+  obj.height = bind(obj, 'height', positioning.parent.height());
 
   var content = obj.add(box({
     x: 0,
     y: 0,
-    width: positioning.parent.width(),
-    height: positioning.parent.height(),
+    width: bind(content, 'width', positioning.parent.width()),
+    height: bind(content, 'height', positioning.parent.height()),
   }));
 
   var options_box = obj.add(html({
-    x: positioning.parent.centerx(),
-    y: positioning.parent.centery(),
+    x: bind(options_box, 'x', positioning.parent.centerx()),
+    y: bind(options_box, 'y', positioning.parent.centery()),
     width: 0,
     height: 0,
   }));
@@ -76,8 +76,8 @@ module.exports = function(options) {
   obj.closeOptions = function() {
     var currw = options_box.width;
     var currh = options_box.height;
-    options_box.width = animate(currw, 0);
-    options_box.height = animate(currh, 0);
+    options_box.width = bind(options_box, 'width', animate(currw, 0));
+    options_box.height = bind(options_box, 'height', animate(currh, 0));
   };
 
   content.ondraw = function(ctx) {
@@ -92,13 +92,13 @@ module.exports = function(options) {
     if (last) last.remove();
 
     var titlebar = content.add(label({
-      y: positioning.prev.bottom(),
+      y: bind(titlebar, 'y', positioning.prev.bottom()),
       title: child.title || 'child has no `title` attribute',
     }));
 
     var options_button = titlebar.add(html({
       html: '<button>Options</button>',
-      x: positioning.parent.right(-65),
+      x: bind(options_button, 'x', positioning.parent.right(-65)),
       y: 4,
       width: 60,
       height: 22,
@@ -114,20 +114,22 @@ module.exports = function(options) {
           return;
         }
 
-        options_box.width = animate(0, options_box.parent.width * 0.5);
-        options_box.height = animate(0, options_box.parent.height * 0.8);
+        options_box.width = bind(options_box, 'width', animate(0, options_box.parent.width * 0.5));
+        options_box.height = bind(options_box, 'height', animate(0, options_box.parent.height * 0.8));
         child.onoptions(options_box.container);
       };
     };
 
-    child.width = positioning.parent.width();
-    child.y = positioning.prev.bottom();
+    child.width = bind(child, 'width', positioning.parent.width());
+    child.y = bind(child, 'y', positioning.prev.bottom());
     var ret = content.add(child);
 
-    content.add(label({
-      y: positioning.prev.bottom(),
-      height: function() { return content.parent.height - content.y; },
-    }));
+    var contentToAdd = label({
+      y: bind(contentToAdd, 'y', positioning.prev.bottom()),
+      height: bind(contentToAdd, 'height', function() { return content.parent.height - content.y; }),
+    })
+
+    content.add(contentToAdd);
 
     return child;
   };

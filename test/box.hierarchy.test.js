@@ -1,6 +1,7 @@
 var assert = require('assert');
 var uijs = require('..');
 var box = uijs.box;
+var bind = uijs.bind;
 
 /*
 
@@ -162,12 +163,15 @@ assert.equal(root.tree(), expected);
 
 // functional behavior of `children`
 
-parent.children = function() {
+bind(parent, 'children', function() {
   return [ 
     box({ id: 'ch1' }),
     box({ id: 'ch2' }),
   ]
-};
+});
+
+// TODO: do we really need to solve this?
+assert(parent.children[0].parent === undefined);
 
 assert(parent.children.length === 2);
 assert(parent.children[0].id === 'ch1');

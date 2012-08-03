@@ -5,6 +5,7 @@ var max = uijs.util.max;
 var positioning = uijs.positioning;
 var box = uijs.box;
 var carouselBehavior = uijs.kinetics.carouselBehavior;
+var bind = uijs.bind;
 
 function c(x) { return function() { return x; }; }
 
@@ -15,22 +16,22 @@ module.exports = function(options) {
   var blackStrip = box({
     clip: true,
     fillStyle: 'black',
-    width: function() {
+    width: bind(blackStrip, 'width', function() {
       var self = this;
       return self.parent.width;
-    },
+    }),
     height: 100,
     x: 0,
-    y: function() {
+    y: bind(blackStrip, 'y', function() {
       var self = this;
       return (self.parent.height / 2) - (self.height / 2);
-    },
+    }),
   });
 
   var imageStrip = box({
     images: options.images,
     fillStyle: 'black',
-    width: positioning.parent.width(),
+    width: bind(imageStrip, 'width', positioning.parent.width()),
     height: 100
   });
 
@@ -44,7 +45,7 @@ module.exports = function(options) {
     var base_index = 0;
     var x = -self.last_x_left_offset;
     for (var i = 0; i < self.images.length; i++){
-      var image = self.images[i]();
+      var image = self.images[i];
       x += image.widthh;
       if (x > x_on_image_strip) {
         base_index = i;
@@ -58,9 +59,9 @@ module.exports = function(options) {
   imageStrip.enlargement_size = 0;
 
   imageStrip.onClick = function(position, self) {
-    self.images[self.enlarged_image_index]().unselect();
+    self.images[self.enlarged_image_index].unselect();
     self.enlarged_image_index = self.getPictureIndexFromParentCoords(position);
-    self.images[self.enlarged_image_index]().select();
+    self.images[self.enlarged_image_index].select();
     self.enlargement_size = 1;
   };
     
@@ -70,11 +71,11 @@ module.exports = function(options) {
     return self.calculateNewX();
   };
 
-  imageStrip.x = function(){
+  imageStrip.x = bind(imageStrip, 'x', function(){
     var self = this;
     self.last_x = self.calculateNewX();
     return self.last_x;
-  };
+  });
 
   imageStrip.calculateNewY = function() {
     var self = this;
@@ -82,11 +83,11 @@ module.exports = function(options) {
     return self.calculateNewY();
   };
 
-  imageStrip.y = function() {
+  imageStrip.y = bind(imageStrip, 'y', function() {
     var self = this;
     self.last_y = self.calculateNewY();
     return self.last_y;
-  };
+  });
 
   var base = {
     ondraw: blackStrip.ondraw
@@ -96,7 +97,7 @@ module.exports = function(options) {
     var self = this;
     self.images.forEach(function(img) {
       self = this;
-      var i = img();
+      var i = img;
       i.growing = false;
       i.shrinking = false;
       i.selectedd = false;
@@ -218,7 +219,7 @@ module.exports = function(options) {
     //Calculate the left x offset for each image and also animate all the images
     // TODO: there has got to be a better way to do this
     self.images.forEach(function(img) {
-      var i = img();
+      var i = img;
       i.animate();
       x_left_offset += (i.widthh - 50) / 2;
     });
@@ -227,7 +228,7 @@ module.exports = function(options) {
     var x = -x_left_offset;
     
     self.images.forEach(function(img) {
-      var i = img();
+      var i = img;
       ctx.drawImage(i, x, i.yy, i.widthh, i.heightt);
       index++;
       x += i.widthh;

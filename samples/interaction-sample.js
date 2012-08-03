@@ -3,6 +3,7 @@ var box = uijs.box;
 var defaults = uijs.util.defaults;
 var html = uijs.html;
 var positioning = uijs.positioning;
+var bind = uijs.bind;
 
 function rect(options) {
   options = defaults(options, {
@@ -139,8 +140,8 @@ noprop.add(rect({
 }));
 
 var help = app.add(html({
-  x: positioning.relative('#anchor2').right(100),
-  y: positioning.relative('#anchor1').top(),
+  x: bind(help, 'x', positioning.relative('#anchor2').right(100)),
+  y: bind(help, 'y', positioning.relative('#anchor1').top()),
   width: 500,
   height: 800,
 }));
