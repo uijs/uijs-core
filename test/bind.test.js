@@ -20,7 +20,7 @@ assert(obj.foo, 'hello');
 
 // this will not work because `xoo` is not bound.
 obj.xoo = foobind;
-assert(obj.xoo.$bindPromise);
+assert(obj.xoo.$Bind);
 
 
 // set up a watch on `foo`
@@ -67,6 +67,73 @@ obj.koo = 444;
 assert(koo_changed === 444);
 bind(obj, 'koo', function() { return 'yeah!' });
 assert(typeof koo_changed === 'function');
+// Check assignment of a function - a warning should apear in the console, but the operation should succeed
+console.log('\nDont worry, the warning about setting a function to a property should appear. ' +
+  'If it doesnt then something is wrong. \n\n');
+obj.koo = 4;
+assert(koo_changed === 4);
+obj.koo = function() { return 'succeeded'; };
+assert(typeof koo_changed === 'function');
+assert(koo_changed() === 'succeeded');
+var koofunction = obj.koo;
+assert(koofunction() === 'succeeded');
+
+// Check binding with the bind(getter, emit) syntax
+obj2 = {
+  x: bind(function() { return 5; }),
+  y: bind(function() { return 6; }, true)
+}
+
+assert(obj2.x.$Bind);
+assert(!obj2.x.$Emit);
+assert(obj2.y.$Bind);
+assert(obj2.y.$Emit);
+
+var boundedObj = autobind(obj2);
+assert(boundedObj.x === 5);
+assert(boundedObj.y === 6);
+
+// Test binding of object which is not a function
+var z_changed = -1;
+var z_changed_bound = null;
+
+boundedObj.z = bind(boundedObj, 'z', 7);
+assert(boundedObj.z === 7);
+
+console.log('\n\n\nDont worry, the warning about setting a function to a property should appear. ' +
+  'If it doesnt then something is wrong. \n\n');
+boundedObj.z = function() {return 'Yes, it was a property before';}
+var zfunction = boundedObj.z;
+assert(zfunction() === 'Yes, it was a property before');
+
+// Test not binding when adding a watch if already bounded
+var x_bounded_again = false;
+var cb_called = false;
+boundedObj.watch('x', function(new_x, bound) {
+  x_bounded_again = bound;
+  cb_called = true;
+});
+assert(x_bounded_again === false);
+assert(cb_called === true);
+
+// Test bound is true when adding a watch to an unbounded var
+var a_bounded = false;
+var cb_called = false;
+boundedObj.watch('a', function(new_x, bound) {
+  a_bounded = bound;
+  cb_called = true;
+});
+assert(a_bounded === true);
+assert(cb_called === true);
+
+// Test second call to watch gives 'false' as bound to cb
+cb_called = false;
+boundedObj.watch('a', function(new_x, bound) {
+  a_bounded = bound;
+  cb_called = true;
+});
+assert(a_bounded === false);
+assert(cb_called === true);
 
 // ----
 
