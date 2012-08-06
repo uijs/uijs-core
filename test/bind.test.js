@@ -126,14 +126,14 @@ boundedObj.watch('x', function(new_x, bound) {
 assert(x_bounded_again === false);
 assert(cb_called === true);
 
-// test bound is true when adding a watch to an unbounded var
+// test bound is false when adding a watch to an unbounded var
 var a_bounded = false;
 var cb_called = false;
 boundedObj.watch('a', function(new_x, bound) {
   a_bounded = bound;
   cb_called = true;
 });
-assert(a_bounded === true);
+assert(a_bounded === false);
 assert(cb_called === true);
 
 // test second call to watch gives 'false' as bound to cb
