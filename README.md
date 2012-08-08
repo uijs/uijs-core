@@ -174,12 +174,12 @@ Note that since benchmarks are regular uijs apps, they can usually be also opene
 
 _All results are from MacBook Air 1.8 GHz i7 4GB_
 
-    +---------------------------------+
-    | test               | b87c5582d2 |
-    +--------------------+------------+
-    | the-box.js         | 13,592fps  |
-    | the-jumping-box.js | 141.4fps   |
-    +---------------------------------+
+    +---------------------------------+-------------------+
+    | test               | b87c5582d2 | 8119a6f096        |
+    +--------------------+------------+-------------------+
+    | the-box.js         | 13,592fps  | 66,870fps (+491%) |
+    | the-jumping-box.js | 141.4fps   | 1,398fps (+988%)  |
+    +---------------------------------+-------------------+
 
 ### Viewing samples
 

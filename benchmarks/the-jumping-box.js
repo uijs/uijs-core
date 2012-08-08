@@ -6,6 +6,7 @@ nodetime.profile();
 var uijs = require('uijs');
 var box = uijs.box;
 var defaults = uijs.util.defaults;
+var bind = uijs.bind;
 
 function thebox(options) {
   var obj = box(defaults(options, {
@@ -30,7 +31,7 @@ function thebox(options) {
       y: curr_y,
       width: 10,
       height: 10,
-      rotation: bounce(Math.round(Math.random() * 100)),
+      rotation: bind(child, 'rotation', bounce(Math.round(Math.random() * 100))),
     }));
 
     curr_x += child.width;
@@ -56,7 +57,7 @@ var size = 100;
 
 app.add(thebox({
   id: '#thebox',
-  y: bounce(),
+  y: bind(app, 'y', bounce()),
   x: 50,
   width: size,
   height: size,
@@ -91,7 +92,8 @@ function bounce(speed) {
 
 
 app.ondraw = function(ctx) {
-  ctx.fillStyle = 'white';
+  // console.log(this.width, this.height);
+  ctx.fillStyle = 'red';
   ctx.fillRect(0, 0, this.width, this.height);
 };
 

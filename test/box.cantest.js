@@ -3,13 +3,14 @@ var box = uijs.box;
 var defaults = uijs.util.defaults;
 var positioning = uijs.positioning;
 var buffers = uijs.buffers;
+var bind = uijs.bind;
 var Canvas = require('canvas');
 
 function rect(options) {
 
   options = defaults(options, {
     color: 'white',
-    label: function() { return this.dock; },
+    label: bind(undefined, 'label', function() { return this.dock; }),
   });
 
   var obj = box(options);
@@ -32,8 +33,8 @@ function rect(options) {
 var app = rect({
   x: 0,
   y: 0,
-  width: positioning.parent.width(),
-  height: positioning.parent.height(),
+  width: bind(undefined, 'width', positioning.parent.width()),
+  height: bind(undefined, 'height', positioning.parent.height()),
   children: [
     rect({ dock: 'top', color: 'blue', height: 50 }),
     rect({ dock: 'fill', color: 'yellow' }),
@@ -56,7 +57,7 @@ var app = rect({
           width: 180,
           height: 50,
           x: 5,
-          y: positioning.prev.bottom(10),
+          y: bind(undefined, 'y', positioning.prev.bottom(10)),
           color: 'purple',
           clip: true,
           label: 'this is a clipped child',
@@ -68,8 +69,8 @@ var app = rect({
       label: 'rotated',
       rotation: Math.PI / 1.5,
       clip: true,
-      x: positioning.parent.centerx(50),
-      y: positioning.parent.centery(),
+      x: bind(undefined, 'x', positioning.parent.centerx(50)),
+      y: bind(undefined, 'y', positioning.parent.centery()),
       width: 200,
       height: 50,
       color: 'red',
@@ -95,28 +96,28 @@ function dock(box) {
 
     // fill width for all dock styles
     child.x = 0;
-    child.width = positioning.parent.width();
+    bind(child, 'width', positioning.parent.width());
 
     if (dock === 'top') {
       child.y = 0;
     }
     else if (dock === 'bottom') {
-      child.y = function() { 
+      bind(child, 'y', function() { 
         return parent.height - child.height;
-      };
+      });
     }
     else if (dock === 'fill') {
-      child.height = function() {
+      bind(child, 'height', function() {
         return children
           .filter(function(c) { return c.dock !== 'fill'; })
           .reduce(function(h, other) { return h - other.height; }, parent.height);
-      };
+      });
 
-      child.y = function() {
+      bind(child, 'y', function() {
         return children
           .filter(function(c) { return c.dock === 'top'; })
           .reduce(function(h, other) { return h + other.height; }, 0);
-      };
+      });
     }
     else {
       console.warn('invalid dock:', dock);
