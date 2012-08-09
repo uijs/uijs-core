@@ -248,6 +248,14 @@ boundedObj.watch('a', function(new_x, bound) {
 assert(a_bounded === false);
 assert(cb_called === true);
 
+// verify that `this` is bound properly in `watch`
+boundedObj.foo = 5;
+var expected = [5,55];
+boundedObj.watch('foo', function() {
+  assert(this.foo, expected.shift());
+});
+boundedObj.foo = 55;
+
 // ----
 
 function bench(obj, prop) {
