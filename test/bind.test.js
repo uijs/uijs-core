@@ -14,6 +14,8 @@ var obj = autobind({
   y: 10,
   foo: foobind,
   goo: function() { return 'goo'; },
+  yoo: bind(function() { return 15; }),
+  noo: bind(function() { return 20; }),
 });
 
 assert(obj.foo, 'hello');
@@ -23,19 +25,120 @@ obj.xoo = foobind;
 assert(obj.xoo.$bind);
 
 
-// set up a watch on `foo`
+// set up a watch on `foo` which receibes notifications on bind
 
 var foo_changed = -1;
 var foo_changed_bound = null;
+var number_foo_watch_called = 0;
 obj.watch('foo', function(new_foo, bound) {
   foo_changed = new_foo;
   foo_changed_bound = bound;
-});
+  number_foo_watch_called++;
+}, true);
+
+assert(number_foo_watch_called === 1);
+assert(foo_changed == 'hello');
+assert(foo_changed_bound === false);
 
 // assign the result of bind back to `foo`. should work
 obj.foo = bind(obj, 'foo', function() { return 88 });
+
+assert(number_foo_watch_called === 2);
+assert(typeof foo_changed === 'function');
+assert(foo_changed_bound === true);
+
 assert(obj.foo === 88);
-assert(foo_changed_bound && typeof foo_changed === 'function');
+
+// foo remains a property adter assigning it with literals
+obj.foo = 89;
+
+assert(number_foo_watch_called === 3);
+assert(typeof foo_changed === 'number');
+assert(foo_changed_bound === false);
+
+assert(obj.foo === 89);
+
+obj.foo = 90;
+
+assert(number_foo_watch_called === 4);
+assert(typeof foo_changed === 'number');
+assert(foo_changed_bound === false);
+
+assert(obj.foo === 90);
+
+// set up a watch on `noo` which doesn't receive notifications on bind explicitely
+
+var noo_changed = -1;
+var noo_changed_bound = null;
+var number_noo_watch_called = 0;
+obj.watch('noo', function(new_noo, bound) {
+  noo_changed = new_noo;
+  noo_changed_bound = bound;
+  number_noo_watch_called++;
+}, false);
+
+assert(number_noo_watch_called === 1);
+assert(noo_changed === 20);
+assert(noo_changed_bound === false);
+
+obj.noo = bind(obj, 'noo', function() { return 27 });
+
+assert(number_noo_watch_called === 1);
+assert(obj.noo === 27);
+
+// noo remains a property adter assigning it with literals
+obj.noo = 28;
+
+assert(number_noo_watch_called === 2);
+assert(typeof noo_changed === 'number');
+assert(noo_changed_bound === false);
+
+assert(obj.noo === 28);
+
+obj.noo = 29;
+
+assert(number_noo_watch_called === 3);
+assert(typeof noo_changed === 'number');
+assert(noo_changed_bound === false);
+
+assert(obj.noo === 29);
+
+// set up a watch on `yoo` which doesn't receive notifications on bind eemplicitely
+
+var yoo_changed = -1;
+var yoo_changed_bound = null;
+var number_yoo_watch_called = 0;
+obj.watch('yoo', function(new_yoo, bound) {
+  yoo_changed = new_yoo;
+  yoo_changed_bound = bound;
+  number_yoo_watch_called++;
+});
+
+assert(number_yoo_watch_called === 1);
+assert(yoo_changed === 15);
+assert(yoo_changed_bound === false);
+
+obj.yoo = bind(obj, 'yoo', function() { return 17 });
+
+assert(number_yoo_watch_called === 1);
+assert(obj.yoo === 17);
+
+// noo remains a property adter assigning it with literals
+obj.yoo = 18;
+
+assert(number_yoo_watch_called === 2);
+assert(typeof yoo_changed === 'number');
+assert(yoo_changed_bound === false);
+
+assert(obj.yoo === 18);
+
+obj.yoo = 19;
+
+assert(number_yoo_watch_called === 3);
+assert(typeof yoo_changed === 'number');
+assert(yoo_changed_bound === false);
+
+assert(obj.yoo === 19);
 
 // bench(obj, 'x');
 
@@ -59,7 +162,7 @@ assert(obj.hello === 99);
 // watch a regular value (behind the scenes it turns to a bound value)
 var koo_changed = -1;
 obj.koo = 8989;
-obj.watch('koo', function(newval) { koo_changed = newval; });
+obj.watch('koo', function(newval) { koo_changed = newval; }, true);
 obj.koo = 777;
 assert(obj.koo === 777);
 assert(koo_changed === 777);
