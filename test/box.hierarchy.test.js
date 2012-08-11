@@ -170,8 +170,10 @@ bind(parent, 'children', function() {
   ]
 });
 
-// TODO: do we really need to solve this?
-assert(parent.children[0].parent === undefined);
+// check that even when binding children to a function then 
+// the parent on all the children is set correctly (because
+// there is a watch on this property in box which fixes it) 
+assert(parent.children[0].parent === parent);
 
 assert(parent.children.length === 2);
 assert(parent.children[0].id === 'ch1');

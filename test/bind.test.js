@@ -25,120 +25,63 @@ obj.xoo = foobind;
 assert(obj.xoo.$bind);
 
 
-// set up a watch on `foo` which receibes notifications on bind
+// set up a watch on `foo` and verify that it receives notifications on bind
 
 var foo_changed = -1;
-var foo_changed_bound = null;
 var number_foo_watch_called = 0;
-obj.watch('foo', function(new_foo, bound) {
+obj.watch('foo', function(new_foo) {
   foo_changed = new_foo;
-  foo_changed_bound = bound;
   number_foo_watch_called++;
-}, true);
+});
 
 assert(number_foo_watch_called === 1);
-assert(foo_changed == 'hello');
-assert(foo_changed_bound === false);
 
 // assign the result of bind back to `foo`. should work
 obj.foo = bind(obj, 'foo', function() { return 88 });
 
 assert(number_foo_watch_called === 2);
-assert(typeof foo_changed === 'function');
-assert(foo_changed_bound === true);
-
 assert(obj.foo === 88);
 
 // foo remains a property adter assigning it with literals
 obj.foo = 89;
 
 assert(number_foo_watch_called === 3);
-assert(typeof foo_changed === 'number');
-assert(foo_changed_bound === false);
-
 assert(obj.foo === 89);
 
 obj.foo = 90;
 
 assert(number_foo_watch_called === 4);
-assert(typeof foo_changed === 'number');
-assert(foo_changed_bound === false);
-
 assert(obj.foo === 90);
 
-// set up a watch on `noo` which doesn't receive notifications on bind explicitely
+// set up a watch on `noo` which is not already bounded to a function
 
 var noo_changed = -1;
-var noo_changed_bound = null;
 var number_noo_watch_called = 0;
-obj.watch('noo', function(new_noo, bound) {
+obj.watch('noo', function(new_noo) {
   noo_changed = new_noo;
-  noo_changed_bound = bound;
   number_noo_watch_called++;
-}, false);
+});
 
 assert(number_noo_watch_called === 1);
 assert(noo_changed === 20);
-assert(noo_changed_bound === false);
-
-obj.noo = bind(obj, 'noo', function() { return 27 });
-
-assert(number_noo_watch_called === 1);
-assert(obj.noo === 27);
 
 // noo remains a property adter assigning it with literals
 obj.noo = 28;
 
 assert(number_noo_watch_called === 2);
-assert(typeof noo_changed === 'number');
-assert(noo_changed_bound === false);
-
 assert(obj.noo === 28);
 
 obj.noo = 29;
 
 assert(number_noo_watch_called === 3);
-assert(typeof noo_changed === 'number');
-assert(noo_changed_bound === false);
-
 assert(obj.noo === 29);
 
-// set up a watch on `yoo` which doesn't receive notifications on bind eemplicitely
+// noo watch continues to behave after binding it back to a function
 
-var yoo_changed = -1;
-var yoo_changed_bound = null;
-var number_yoo_watch_called = 0;
-obj.watch('yoo', function(new_yoo, bound) {
-  yoo_changed = new_yoo;
-  yoo_changed_bound = bound;
-  number_yoo_watch_called++;
-});
+obj.noo = bind(obj, 'noo', function() { return 27 });
 
-assert(number_yoo_watch_called === 1);
-assert(yoo_changed === 15);
-assert(yoo_changed_bound === false);
-
-obj.yoo = bind(obj, 'yoo', function() { return 17 });
-
-assert(number_yoo_watch_called === 1);
-assert(obj.yoo === 17);
-
-// noo remains a property adter assigning it with literals
-obj.yoo = 18;
-
-assert(number_yoo_watch_called === 2);
-assert(typeof yoo_changed === 'number');
-assert(yoo_changed_bound === false);
-
-assert(obj.yoo === 18);
-
-obj.yoo = 19;
-
-assert(number_yoo_watch_called === 3);
-assert(typeof yoo_changed === 'number');
-assert(yoo_changed_bound === false);
-
-assert(obj.yoo === 19);
+assert(number_noo_watch_called === 4);
+assert(obj.noo === 27);
 
 // bench(obj, 'x');
 
@@ -162,14 +105,14 @@ assert(obj.hello === 99);
 // watch a regular value (behind the scenes it turns to a bound value)
 var koo_changed = -1;
 obj.koo = 8989;
-obj.watch('koo', function(newval) { koo_changed = newval; }, true);
+obj.watch('koo', function(newval) { koo_changed = newval; });
 obj.koo = 777;
 assert(obj.koo === 777);
 assert(koo_changed === 777);
 obj.koo = 444;
 assert(koo_changed === 444);
 bind(obj, 'koo', function() { return 'yeah!' });
-assert(typeof koo_changed === 'function');
+assert(koo_changed === 'yeah!');
 // check assignment of a function - a warning should apear in the console, but the operation should succeed
 console.log('\nDont worry, the warning about setting a function to a property should appear. ' +
   'If it doesnt then something is wrong. \n\n');
@@ -187,10 +130,8 @@ obj2 = {
   y: bind(function() { return 6; }, true)
 }
 
-assert(obj2.x.$bind.fn);
-assert(!obj2.x.$bind.emit);
-assert(obj2.y.$bind.fn);
-assert(obj2.y.$bind.emit);
+assert(obj2.x.$bind);
+assert(obj2.y.$bind);
 
 var boundedObj = autobind(obj2);
 assert(boundedObj.x === 5);
@@ -222,39 +163,54 @@ assert(zfunction() === 'Yes, it was a property before');
 // test not binding when adding a watch if already bounded
 var x_bounded_again = false;
 var cb_called = false;
-boundedObj.watch('x', function(new_x, bound) {
-  x_bounded_again = bound;
+boundedObj.watch('x', function(new_x) {
   cb_called = true;
 });
-assert(x_bounded_again === false);
 assert(cb_called === true);
 
 // test bound is false when adding a watch to an unbounded var
 var a_bounded = false;
 var cb_called = false;
 boundedObj.watch('a', function(new_x, bound) {
-  a_bounded = bound;
   cb_called = true;
 });
-assert(a_bounded === false);
 assert(cb_called === true);
 
 // test second call to watch gives 'false' as bound to cb
 cb_called = false;
 boundedObj.watch('a', function(new_x, bound) {
-  a_bounded = bound;
   cb_called = true;
 });
-assert(a_bounded === false);
 assert(cb_called === true);
 
 // verify that `this` is bound properly in `watch`
 boundedObj.foo = 5;
 var expected = [5,55];
+var number_foo_watch_called = 0;
 boundedObj.watch('foo', function() {
   assert(this.foo, expected.shift());
+  number_foo_watch_called++;
 });
+assert(number_foo_watch_called === 1);
 boundedObj.foo = 55;
+assert(number_foo_watch_called === 2);
+
+// test the freezer behavior
+var i = 0;
+boundedObj.shoo = bind(boundedObj, 'shoo', function () { return ++i; });
+assert(boundedObj.shoo === 1);
+assert(boundedObj.shoo === 2);
+
+// add the freezer object and see that the value if freezed
+boundedObj.$freeze = {};
+assert(boundedObj.shoo === 3);
+assert(boundedObj.shoo === 3);
+assert(boundedObj.shoo === 3);
+
+// remove the freezer object and see that the value is unfreezed
+delete boundedObj.$freeze
+assert(boundedObj.shoo === 4);
+assert(boundedObj.shoo === 5);
 
 // ----
 
