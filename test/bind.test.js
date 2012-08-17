@@ -29,59 +29,110 @@ assert(obj.xoo.$bind);
 
 var foo_changed = -1;
 var number_foo_watch_called = 0;
-obj.watch('foo', function(new_foo) {
+var number_foo_watch_state_called = 0;
+var btf;
+var btf2
+var prp;
+var prp2
+obj.watch('foo', function(new_foo, prop, bound_to_function) {
   foo_changed = new_foo;
   number_foo_watch_called++;
+  btf = bound_to_function;
+  prp = prop;
+}, function(prop, bound_to_function){
+  number_foo_watch_state_called++;
+  btf2 = bound_to_function;
+  prp2 = prop;
 });
 
+assert(btf === true);
+assert(prp === 'foo');
 assert(number_foo_watch_called === 1);
+assert(btf2 === true);
+assert(prp2 === 'foo');
+assert(number_foo_watch_state_called === 1);
 
 // assign the result of bind back to `foo`. should work
 obj.foo = bind(obj, 'foo', function() { return 88 });
 
 assert(number_foo_watch_called === 2);
 assert(obj.foo === 88);
+assert(btf === true);
+assert(prp === 'foo');
+assert(number_foo_watch_state_called === 1);
 
 // foo remains a property adter assigning it with literals
 obj.foo = 89;
 
 assert(number_foo_watch_called === 3);
 assert(obj.foo === 89);
+assert(btf === false);
+assert(prp === 'foo');
+assert(btf2 === false);
+assert(prp2 === 'foo');
+assert(number_foo_watch_state_called === 2);
 
 obj.foo = 90;
 
 assert(number_foo_watch_called === 4);
 assert(obj.foo === 90);
+assert(btf === false);
+assert(prp === 'foo');
+assert(number_foo_watch_state_called === 2);
 
-// set up a watch on `noo` which is not already bounded to a function
+// set up a watch on `noo` which is already bound to a function
 
 var noo_changed = -1;
 var number_noo_watch_called = 0;
-obj.watch('noo', function(new_noo) {
+var number_noo_watch_state_called = 0;
+obj.watch('noo', function(new_noo, prop, bound_to_function) {
   noo_changed = new_noo;
   number_noo_watch_called++;
+  btf = bound_to_function;
+  prp = prop;
+}, function(prop, bound_to_function){
+  number_noo_watch_state_called++;
+  btf2 = bound_to_function;
+  prp2 = prop;
 });
 
 assert(number_noo_watch_called === 1);
 assert(noo_changed === 20);
+assert(btf === true);
+assert(prp === 'noo');
+assert(number_noo_watch_state_called === 1);
+assert(btf2 === true);
+assert(prp2 === 'noo');
 
 // noo remains a property adter assigning it with literals
 obj.noo = 28;
 
 assert(number_noo_watch_called === 2);
 assert(obj.noo === 28);
+assert(btf === false);
+assert(prp === 'noo');
+assert(number_noo_watch_state_called === 2);
+assert(btf2 === false);
+assert(prp2 === 'noo');
 
 obj.noo = 29;
 
 assert(number_noo_watch_called === 3);
 assert(obj.noo === 29);
+assert(btf === false);
+assert(prp === 'noo');
+assert(number_noo_watch_state_called === 2);
 
 // noo watch continues to behave after binding it back to a function
-
 obj.noo = bind(obj, 'noo', function() { return 27 });
 
 assert(number_noo_watch_called === 4);
 assert(obj.noo === 27);
+assert(btf === true);
+assert(prp === 'noo');
+assert(number_noo_watch_state_called === 3);
+assert(btf2 === true);
+assert(prp2 === 'noo');
 
 // bench(obj, 'x');
 
@@ -105,24 +156,111 @@ assert(obj.hello === 99);
 // watch a regular value (behind the scenes it turns to a bound value)
 var koo_changed = -1;
 obj.koo = 8989;
-obj.watch('koo', function(newval) { koo_changed = newval; });
+var number_koo_watch_called = 0;
+var number_koo_watch_state_called = 0;
+obj.watch('koo', function(newval, prop, bound_to_function) { 
+  number_koo_watch_called++;
+  koo_changed = newval; 
+  btf = bound_to_function;
+  prp = prop;
+}, function(prop, bound_to_function){
+  number_koo_watch_state_called++;
+  btf2 = bound_to_function;
+  prp2 = prop;
+});
+
+assert(number_koo_watch_called === 1);
+assert(btf === false);
+assert(prp === 'koo');
+assert(koo_changed === 8989);
+assert(number_koo_watch_state_called === 1);
+assert(btf2 === false);
+assert(prp2 === 'koo');
+
+assert(obj.koo === 8989);
+assert(number_koo_watch_called === 1);
+assert(number_koo_watch_state_called === 1);
+
 obj.koo = 777;
+assert(number_koo_watch_called === 2);
 assert(obj.koo === 777);
+assert(btf === false);
+assert(prp === 'koo');
 assert(koo_changed === 777);
+assert(number_koo_watch_state_called === 1);
+
 obj.koo = 444;
 assert(koo_changed === 444);
+assert(btf === false);
+assert(prp === 'koo');
+assert(number_koo_watch_called === 3);
+assert(number_koo_watch_state_called === 1);
+
+// setting to the same value => cb isn't called
+obj.koo = 444;
+assert(number_koo_watch_called === 3);
+assert(number_koo_watch_state_called === 1);
+
+// binding to function
 bind(obj, 'koo', function() { return 'yeah!' });
+assert(number_koo_watch_called === 4);
 assert(koo_changed === 'yeah!');
+assert(btf === true);
+assert(prp === 'koo');
+assert(number_koo_watch_state_called === 2);
+assert(btf2 === true);
+assert(prp2 === 'koo');
+
+// binding to function which returns the same value - no cb called
+bind(obj, 'koo', function() { return 'yeah!' });
+console.log(number_koo_watch_called);
+assert(number_koo_watch_called === 4);
+assert(koo_changed === 'yeah!');
+assert(number_koo_watch_state_called === 2);
+assert(obj.koo === 'yeah!');
+assert(number_koo_watch_called === 4);
+assert(number_koo_watch_state_called === 2);
+
+// binding to different function - only 1st cb called
+bind(obj, 'koo', function() { return 'yeah2!' });
+assert(number_koo_watch_called === 5);
+assert(koo_changed === 'yeah2!');
+assert(btf === true);
+assert(prp === 'koo');
+assert(number_koo_watch_state_called === 2);
+assert(obj.koo === 'yeah2!');
+assert(number_koo_watch_called === 5);
+assert(number_koo_watch_state_called === 2);
+
 // check assignment of a function - a warning should apear in the console, but the operation should succeed
 console.log('\nDont worry, the warning about setting a function to a property should appear. ' +
   'If it doesnt then something is wrong. \n\n');
 obj.koo = 4;
+assert(number_koo_watch_called === 6);
 assert(koo_changed === 4);
+assert(btf === false);
+assert(prp === 'koo');
+assert(number_koo_watch_state_called === 3);
+assert(btf2 === false);
+assert(prp2 === 'koo');
+
+assert(obj.koo === 4);
+assert(number_koo_watch_called === 6);
+assert(number_koo_watch_state_called === 3);
+
 obj.koo = function() { return 'succeeded'; };
 assert(typeof koo_changed === 'function');
+assert(btf === false);
+assert(prp === 'koo');
+assert(number_koo_watch_called === 7);
+assert(number_koo_watch_state_called === 3);
 assert(koo_changed() === 'succeeded');
 var koofunction = obj.koo;
+assert(number_koo_watch_called === 7);
+assert(number_koo_watch_state_called === 3);
 assert(koofunction() === 'succeeded');
+assert(number_koo_watch_called === 7);
+assert(number_koo_watch_state_called === 3);
 
 // check binding with the bind(getter, emit) syntax
 obj2 = {
@@ -160,40 +298,81 @@ boundedObj.z = function() {return 'Yes, it was a property before';}
 var zfunction = boundedObj.z;
 assert(zfunction() === 'Yes, it was a property before');
 
-// test not binding when adding a watch if already bounded
-var x_bounded_again = false;
-var cb_called = false;
-boundedObj.watch('x', function(new_x) {
-  cb_called = true;
-});
-assert(cb_called === true);
-
-// test bound is false when adding a watch to an unbounded var
+// test bound is false when adding a watch to a non existing var
 var a_bounded = false;
+var number_a_watch_called = 0;
+var number_a_watch_state_called = 0;
 var cb_called = false;
-boundedObj.watch('a', function(new_x, bound) {
-  cb_called = true;
+var cb2_called = false;
+boundedObj.watch('a', function(new_x, prop, bound_to_function) {
+  number_a_watch_called++;
+  btf = bound_to_function;
+  prp = prop;
+}, function(prop, bound_to_function) {
+  number_a_watch_state_called++;
+  btf2 = bound_to_function;
+  prp2 = prop;
 });
-assert(cb_called === true);
+assert(number_a_watch_called === 1);
+assert(btf === false);
+assert(prp === 'a');
+assert(number_a_watch_state_called === 1);
+assert(btf === false);
+assert(prp === 'a');
 
-// test second call to watch gives 'false' as bound to cb
-cb_called = false;
-boundedObj.watch('a', function(new_x, bound) {
-  cb_called = true;
+// test second call to watch
+var number_a_watch_called_2 = 0;
+var number_a_watch_state_called_2 = 0;
+var btf;
+var btf2;
+var btf_2;
+var btf2_2;
+boundedObj.watch('a', function(new_x, prop, bound_to_function) {
+  number_a_watch_called_2++;
+  btf_2 = bound_to_function;
+  prp_2 = prop;
+}, function(prop, bound_to_function) {
+  number_a_watch_state_called_2++;
+  btf2_2 = bound_to_function;
+  prp2_2 = prop;
 });
-assert(cb_called === true);
+assert(number_a_watch_called === 1);
+assert(number_a_watch_called_2 === 1);
+assert(btf_2 === false);
+assert(prp_2 === 'a');
+assert(number_a_watch_state_called === 1);
+assert(btf2_2 === false);
+assert(prp2_2 === 'a');
+assert(number_a_watch_state_called_2 === 1);
+
+//TODO: Add unwatch test here
 
 // verify that `this` is bound properly in `watch`
 boundedObj.foo = 5;
 var expected = [5,55];
 var number_foo_watch_called = 0;
-boundedObj.watch('foo', function() {
+var number_foo_watch_state_called = 0;
+boundedObj.watch('foo', function(newval, prop, bound_to_function) {
   assert(this.foo, expected.shift());
   number_foo_watch_called++;
+  btf = bound_to_function;
+  prp = prop;
+}, function(prop, bound_to_function) {
+  number_foo_watch_state_called++;
+  btf2 = bound_to_function;
+  prp2 = prop;
 });
+assert(btf === false);
+assert(prp === 'foo');
 assert(number_foo_watch_called === 1);
+assert(btf2 === false);
+assert(prp2 === 'foo');
+assert(number_foo_watch_state_called === 1);
 boundedObj.foo = 55;
+assert(btf === false);
+assert(prp === 'foo');
 assert(number_foo_watch_called === 2);
+assert(number_foo_watch_state_called === 1);
 
 // test the freezer behavior
 var i = 0;
