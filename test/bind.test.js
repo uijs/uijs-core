@@ -1,5 +1,6 @@
 var assert = require('assert');
 var bind = require('..').bind;
+var debug = false;
 
 var EventEmitter = require('..').events.EventEmitter;
 
@@ -25,7 +26,7 @@ assert(obj.xoo.$bind);
 
 function watch_callback(name, result) {
   return function(curr, prev, prop, is_bound) {
-    console.log(name, 'called with curr=' + curr, 'and prev=' + prev);
+    if (debug) console.log(name, 'called with curr=' + curr, 'and prev=' + prev);
     result.called = result.called || [];
     result.called.push({
       self: this,
@@ -85,48 +86,54 @@ obj.foo;
 assert.equal(watch_foo_1.called.length, 1); // no change before tick
 assert.equal(watch_foo_2.called.length, 1);
 bind.tick();
-assert.equal(watch_foo_1.called.length, 4);
-assert.equal(watch_foo_2.called.length, 4);
+assert.equal(watch_foo_1.called.length, 2);
+assert.equal(watch_foo_2.called.length, 2);
+bind.tick();
+assert.equal(watch_foo_1.called.length, 2);
+assert.equal(watch_foo_2.called.length, 2);
+bind.tick();
+assert.equal(watch_foo_1.called.length, 2);
+assert.equal(watch_foo_2.called.length, 2);
 
 // now add another watcher and since `foo` changes it's value, expect all watchers to be notified
 var watch_foo_3 = {};
 obj.watch('foo', watch_callback('watch_foo_3', watch_foo_3));
-assert.equal(watch_foo_1.called.length, 4);
-assert.equal(watch_foo_2.called.length, 4);
+assert.equal(watch_foo_1.called.length, 2);
+assert.equal(watch_foo_2.called.length, 2);
 assert(!watch_foo_3.called); // no callback before tick
 bind.tick();
-assert.equal(watch_foo_1.called.length, 5);
-assert.equal(watch_foo_2.called.length, 5);
+assert.equal(watch_foo_1.called.length, 3);
+assert.equal(watch_foo_2.called.length, 3);
 assert.equal(watch_foo_3.called.length, 1);
 
 // foo remains a property after assigning it with literals
 obj.foo = 89;
 bind.tick();
 assert(obj.foo === 89);
-assert.equal(watch_foo_1.called.length, 6);
-assert.equal(watch_foo_2.called.length, 6);
+assert.equal(watch_foo_1.called.length, 4);
+assert.equal(watch_foo_2.called.length, 4);
 assert.equal(watch_foo_3.called.length, 2);
 obj.foo = 90;
-assert.equal(watch_foo_1.called.length, 6);
+assert.equal(watch_foo_1.called.length, 4);
 assert.equal(watch_foo_1.called[0].self, obj);
-assert.equal(watch_foo_2.called.length, 6);
+assert.equal(watch_foo_2.called.length, 4);
 assert.equal(watch_foo_3.called.length, 2);
 bind.tick();
-assert.equal(watch_foo_1.called.length, 7);
-assert.equal(watch_foo_2.called.length, 7);
+assert.equal(watch_foo_1.called.length, 5);
+assert.equal(watch_foo_2.called.length, 5);
 assert.equal(watch_foo_3.called.length, 3);
 
 // bind foo back to a function and make sure it continues to behave
 obj.bind('foo', function() { return 27; });
 bind.tick();
-assert.equal(watch_foo_1.called.length, 7);
-assert.equal(watch_foo_2.called.length, 7);
+assert.equal(watch_foo_1.called.length, 5);
+assert.equal(watch_foo_2.called.length, 5);
 assert.equal(watch_foo_3.called.length, 3);
 assert.equal(obj.foo, 27); // read obj.foo and expect all watchers to be notified
 bind.tick();
-assert.equal(watch_foo_1.called.length, 8);
+assert.equal(watch_foo_1.called.length, 6);
 assert.equal(watch_foo_1.called[0].self, obj);
-assert.equal(watch_foo_2.called.length, 8);
+assert.equal(watch_foo_2.called.length, 6);
 assert.equal(watch_foo_3.called.length, 4);
 
 // bind without assignment. should work
@@ -226,10 +233,34 @@ bind.tick();
 assert.equal(p_values[0], 4);
 assert.equal(p_values[1], 5);
 
+// freezing: since values are frozen between ticks, we expect a bound field not to change unless a tick happened
+var fr = 0;
+obj.bind('froo', function() { return fr++; });
+assert.equal(obj.froo, 0)
+assert.equal(obj.froo, 0)
+assert.equal(obj.froo, 0)
+assert.equal(obj.froo, 0)
+assert.equal(obj.froo, 0)
+bind.tick();
+assert.equal(obj.froo, 1)
+assert.equal(obj.froo, 1)
+assert.equal(obj.froo, 1)
+assert.equal(obj.froo, 1)
+assert.equal(obj.froo, 1)
+
+
+// invalidation: 
+// obj.changed
+
+return;
+
+
+
 // -- delete this after the $motherfucker marker is no longer needed to detect misuse of `bind`.
 
 // assign the result of bind back to `foo`. should work
 obj.foo = bind(obj, 'foo', function() { return 88 });
+
 
 
 //--------------------------------------------------------------------------------------
