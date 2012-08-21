@@ -4,6 +4,11 @@ var EventEmitter = require('..').events.EventEmitter;
 
 var autobind = bind.autobind;
 
+// we turn the `nexttick` function to synchronous so that it will easier to test
+bind.nexttick(function(cb) {
+    return cb();
+});
+
 // play around with some usage options
 
 // create a 'bind promise' and assign it in the object literal later.
