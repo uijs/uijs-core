@@ -74,19 +74,23 @@ assert.equal(watch_foo_2.called.length, 1);
 bind.tick();
 assert.equal(watch_foo_1.called.length, 2);
 assert.equal(watch_foo_2.called.length, 2);
-bind.tick();
-assert.equal(watch_foo_1.called.length, 2);
-assert.equal(watch_foo_2.called.length, 2);
+
+// since we did not consume obj.foo, no notifications are expected in this tick
 bind.tick();
 assert.equal(watch_foo_1.called.length, 2);
 assert.equal(watch_foo_2.called.length, 2);
 
-// now add another watcher and since `foo` changes it's value, expect all watchers to be notified
+// now add another watcher and since `foo` changes it's value on every `get`
+// we expect all watchers to be notified on the subsequent tick
 var watch_foo_3 = {};
 obj.watch('foo', watch_callback('watch_foo_3', watch_foo_3));
 assert.equal(watch_foo_1.called.length, 2);
 assert.equal(watch_foo_2.called.length, 2);
 assert(!watch_foo_3.called); // no callback before tick
+bind.tick();
+assert.equal(watch_foo_3.called.length, 1);
+assert.equal(watch_foo_1.called.length, 2); // notification triggered only on next-tick
+assert.equal(watch_foo_2.called.length, 2); // notification triggered only on next-tick
 bind.tick();
 assert.equal(watch_foo_1.called.length, 3);
 assert.equal(watch_foo_2.called.length, 3);
@@ -292,6 +296,20 @@ assert.equal(yoo_watch.called.length, 2);
 assert.equal(yoo_watch.called[1].curr, obj.joo);
 assert.equal(yoo_watch.called[1].prev, 10);
 
+// if a watch callback triggers a notification, it should be called only on the next tick
+var voo_1_watch = {};
+var voo_2_watch = {};
+obj.voo_1 = 10;
+obj.voo_2 = 55;
+obj.watch('voo_1', watch_callback('voo_1_watch', voo_1_watch));
+obj.watch('voo', function() {
+  this.voo_1++; // since we have a watch on voo_1, this triggers a notification
+});
+bind.tick();
+assert.equal(voo_1_watch.called.length, 1); // first for the initial watch...
+bind.tick();
+assert.equal(voo_1_watch.called.length, 2); // ..second for the `++`.
+
 return;
 
 // -- delete this after the $motherfucker marker is no longer needed to detect misuse of `bind`.
@@ -301,29 +319,6 @@ obj.foo = bind(obj, 'foo', function() { return 88 });
 
 
 
-//--------------------------------------------------------------------------------------
-return;
-
-
-// test the freezer behavior
-var i = 0;
-boundedObj.shoo = bind(boundedObj, 'shoo', function () { return ++i; });
-bind.tick();
-assert(boundedObj.shoo === 1);
-bind.tick();
-assert(boundedObj.shoo === 2);
-
-// add the freezer object and see that the value if freezed
-bind.tick();
-assert(boundedObj.shoo === 3);
-assert(boundedObj.shoo === 3);
-assert(boundedObj.shoo === 3);
-
-// remove the freezer object and see that the value is unfreezed
-bind.tick();
-assert(boundedObj.shoo === 4);
-bind.tick();
-assert(boundedObj.shoo === 5);
 
 /*
  
