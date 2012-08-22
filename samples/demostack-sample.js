@@ -13,7 +13,7 @@ var b1 = box({
 var b2 = box({
   clip: true,
   title: 'ThE crazy snake',
-  height: bind(b2, 'height', function() { return this.parent.height - this.y; }),
+  height: bind(function() { return this.parent.height - this.y; }),
   dropVelocity: -3.8,
 });
 

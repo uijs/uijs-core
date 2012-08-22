@@ -16,13 +16,13 @@ module.exports = function(options) {
   var blackStrip = box({
     clip: true,
     fillStyle: 'black',
-    width: bind(blackStrip, 'width', function() {
+    width: bind(function() {
       var self = this;
       return self.parent.width;
     }),
     height: 100,
     x: 0,
-    y: bind(blackStrip, 'y', function() {
+    y: bind(function() {
       var self = this;
       return (self.parent.height / 2) - (self.height / 2);
     }),
@@ -31,7 +31,7 @@ module.exports = function(options) {
   var imageStrip = box({
     images: options.images,
     fillStyle: 'black',
-    width: bind(imageStrip, 'width', positioning.parent.width()),
+    width: bind(positioning.parent.width()),
     height: 100
   });
 
@@ -71,7 +71,7 @@ module.exports = function(options) {
     return self.calculateNewX();
   };
 
-  imageStrip.x = bind(imageStrip, 'x', function(){
+  imageStrip.bind('x', function(){
     var self = this;
     self.last_x = self.calculateNewX();
     return self.last_x;
@@ -83,7 +83,7 @@ module.exports = function(options) {
     return self.calculateNewY();
   };
 
-  imageStrip.y = bind(imageStrip, 'y', function() {
+  imageStrip.bind('y', function() {
     var self = this;
     self.last_y = self.calculateNewY();
     return self.last_y;

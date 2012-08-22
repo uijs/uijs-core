@@ -140,8 +140,8 @@ noprop.add(rect({
 }));
 
 var help = app.add(html({
-  x: bind(help, 'x', positioning.relative('#anchor2').right(100)),
-  y: bind(help, 'y', positioning.relative('#anchor1').top()),
+  x: bind(positioning.relative('#anchor2').right(100)),
+  y: bind(positioning.relative('#anchor1').top()),
   width: 500,
   height: 800,
 }));

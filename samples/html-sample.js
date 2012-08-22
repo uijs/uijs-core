@@ -9,7 +9,7 @@ var html = uijs.html;
 // the `color` attribute is a function that returns
 // the color based on the current HTML <option> selection.
 var app = box({ 
-  color: bind(app, 'color', function() {
+  color: bind(function() {
     var sel = document.getElementById('color');
 
     // since the inner DOM is not loaded immediately, we must
@@ -45,8 +45,8 @@ var htmlBox = html({
       alert('you clicked me man!')
     };
   },
-  x: bind(htmlBox, 'x', animate(0, 200, {duration:1000})),
-  y: bind(htmlBox, 'y', animate(0, 100, {duration:1000})),
+  x: bind(animate(0, 200, {duration:1000})),
+  y: bind(animate(0, 100, {duration:1000})),
   width: 200,
   height: 200,
 });

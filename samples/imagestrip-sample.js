@@ -3,7 +3,6 @@ var loadimage = uijs.util.loadimage;
 var carousel = require('./physics/carousel');
 var images = require('./physics/data');
 var box = uijs.box;
-var bind = uijs.bind;
 
 var app = box({
 });

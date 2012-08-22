@@ -6,7 +6,7 @@ var bind = uijs.bind;
 
 function stripes() {
   var obj = box({
-    width: bind(obj, 'width', positioning.parent.width()),
+    width: bind(positioning.parent.width()),
     height: 10000,
     interaction: false,
   });
