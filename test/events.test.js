@@ -72,7 +72,7 @@ ee2.on('x', function(val) {
 mybox.emit('x', 1234);
 mybox.emit('y');
 
-assert(x_emitted === 1);
+assert.equal(x_emitted, 1);
 
 mybox.unforward(ee2);
 mybox.emit('x', 1234);

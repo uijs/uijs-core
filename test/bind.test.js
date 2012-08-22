@@ -233,28 +233,47 @@ bind.tick();
 assert.equal(p_values[0], 4);
 assert.equal(p_values[1], 5);
 
-// freezing: since values are frozen between ticks, we expect a bound field not to change unless a tick happened
+// freezing
+
+// since values are frozen between ticks, we expect a bound field not to change unless a tick happened
 var fr = 0;
+var froo_watch = {};
 obj.bind('froo', function() { return fr++; });
-assert.equal(obj.froo, 0)
-assert.equal(obj.froo, 0)
-assert.equal(obj.froo, 0)
-assert.equal(obj.froo, 0)
-assert.equal(obj.froo, 0)
+obj.watch('froo', watch_callback('froo_watch', froo_watch));
+assert.equal(obj.froo, 0);
+assert.equal(obj.froo, 0);
+assert.equal(obj.froo, 0);
+assert.equal(obj.froo, 0);
+assert.equal(obj.froo, 0);
 bind.tick();
-assert.equal(obj.froo, 1)
-assert.equal(obj.froo, 1)
-assert.equal(obj.froo, 1)
-assert.equal(obj.froo, 1)
-assert.equal(obj.froo, 1)
+assert.equal(obj.froo, 1);
+assert.equal(obj.froo, 1);
+assert.equal(obj.froo, 1);
+assert.equal(obj.froo, 1);
+assert.equal(obj.froo, 1);
+assert.equal(froo_watch.called.length, 1);
+assert.equal(froo_watch.called[0].curr, 0);
+assert.equal(froo_watch.called[0].prev, undefined);
+bind.tick();
+assert.equal(froo_watch.called.length, 2);
+assert.equal(froo_watch.called[1].curr, 1);
+assert.equal(froo_watch.called[1].prev, 0);
 
+// literals can change of course
+obj.fraa = 6;
+assert.equal(obj.fraa, 6);
+obj.fraa = 7;
+assert.equal(obj.fraa, 7);
+bind.tick();
+assert.equal(obj.fraa, 7);
+obj.fraa = 8;
+assert.equal(obj.fraa, 8);
 
-// invalidation: 
-// obj.changed
+// change the compare function
+//obj.compare('foo', function(curr, prev) { return curr == prev + 1; });
+
 
 return;
-
-
 
 // -- delete this after the $motherfucker marker is no longer needed to detect misuse of `bind`.
 

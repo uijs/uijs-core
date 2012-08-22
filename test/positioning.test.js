@@ -20,14 +20,13 @@ assert.equal(positioning.height(b1), 555);
 assert.equal(positioning.right(b1), 50 + 123);
 assert.equal(positioning.bottom(b1), 230 + 555);
 
-
 // positioning.parent.xxx([delta])
 
 var c1 = b1.add(box({
-  x: bind(c1, 'x', positioning.parent.right(5)),
-  y: bind(c1, 'y', positioning.parent.bottom()),
-  width: bind(c1, 'width', positioning.parent.width(-10)),
-  height: bind(c1, 'height', positioning.parent.height(+10)),
+  x: bind(positioning.parent.right(5)),
+  y: bind(positioning.parent.bottom()),
+  width: bind(positioning.parent.width(-10)),
+  height: bind(positioning.parent.height(+10)),
 }));
 
 assert.equal(c1.x, 50 + 123 + 5);
@@ -39,16 +38,16 @@ assert.equal(c1.height, 555 + 10);
 // positioning.prev.xxx([delta])
 
 var c2 = b1.add(box({
-  x: bind(c2, 'x', positioning.prev.left()),
-  y: bind(c2, 'y', positioning.prev.bottom(+5)),
+  x: bind(positioning.prev.left()),
+  y: bind(positioning.prev.bottom(+5)),
 }));
 
 assert.equal(c2.x, c1.x);
 assert.equal(c2.y, c1.y + c1.height + 5);
 
 var gc1 = c2.add(box({
-  x: bind(gc1, 'x', positioning.prev.bottom()),
-  y: bind(gc1, 'y', positioning.prev.left(2)),
+  x: bind(positioning.prev.bottom()),
+  y: bind(positioning.prev.left(2)),
 }));
 
 assert.equal(gc1.x, 0);
@@ -57,8 +56,8 @@ assert.equal(gc1.y, 2);
 // centerx and centery
 
 var c3 = b1.add(box({
-  x: bind(c3, 'x', positioning.parent.centerx()),
-  y: bind(c3, 'y', positioning.parent.centery(-5)),
+  x: bind(positioning.parent.centerx()),
+  y: bind(positioning.parent.centery(-5)),
   width: 100,
   height: 50,
 }));
