@@ -24,20 +24,6 @@ assert(obj.foo, 'hello');
 obj.xoo = foobind_promise;
 assert(obj.xoo.$bind);
 
-function watch_callback(name, result) {
-  return function(curr, prev, prop, is_bound) {
-    if (debug) console.log(name, 'called with curr=' + curr, 'and prev=' + prev);
-    result.called = result.called || [];
-    result.called.push({
-      self: this,
-      curr: curr,
-      prev: prev,
-      prop: prop,
-      is_bound: is_bound
-    });
-  }
-}
-
 var watch_x = {};
 obj.watch('x', watch_callback('watch_x', watch_x));
 
@@ -49,6 +35,7 @@ assert.equal(watch_x.called[0].curr, 5);
 // set up a watch on `foo` and verify that it receives notifications on bind
 var watch_foo_1 = {};
 obj.watch('foo', watch_callback('watch_foo_1', watch_foo_1));
+
 
 bind.tick();
 assert(watch_foo_1.called);
@@ -342,3 +329,19 @@ assert(boundedObj.shoo === 5);
 /**:-)****/
 
 
+
+// -- helpers
+
+function watch_callback(name, result) {
+  return function(curr, prev, prop, is_bound) {
+    if (debug) console.log(name, 'called with curr=' + curr, 'and prev=' + prev);
+    result.called = result.called || [];
+    result.called.push({
+      self: this,
+      curr: curr,
+      prev: prev,
+      prop: prop,
+      is_bound: is_bound
+    });
+  }
+}
