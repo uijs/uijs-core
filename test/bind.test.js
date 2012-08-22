@@ -223,6 +223,34 @@ bind.tick();
 assert.equal(p_values[0], 4);
 assert.equal(p_values[1], 5);
 
+// changing value of a watched literal doesn't cause the watch cb to be called untill tick,
+// and when it does - then we get undefined --> new val
+// freezing
+var shoo_watch = {};
+obj.shoo = 5;
+obj.watch('shoo', watch_callback('shoo_watch', shoo_watch));
+assert.equal(obj.shoo, 5);
+assert(!shoo_watch.called);
+obj.shoo = 6;
+assert.equal(obj.shoo, 6);
+assert(!shoo_watch.called);
+bind.tick();
+assert(shoo_watch.called);
+assert.equal(shoo_watch.called.length, 1);
+assert.equal(shoo_watch.called[0].curr, 6);
+assert.equal(shoo_watch.called[0].prev, undefined);
+
+var shoo2_watch = {};
+obj.shoo2 = 5;
+obj.watch('shoo2', watch_callback('shoo2_watch', shoo2_watch));
+assert.equal(obj.shoo2, 5);
+assert(!shoo2_watch.called);
+bind.tick();
+assert(shoo2_watch.called);
+assert.equal(shoo2_watch.called.length, 1);
+assert.equal(shoo2_watch.called[0].curr, 5);
+assert.equal(shoo2_watch.called[0].prev, undefined);
+
 // freezing
 
 // since values are frozen between ticks, we expect a bound field not to change unless a tick happened
