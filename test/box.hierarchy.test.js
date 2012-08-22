@@ -163,7 +163,7 @@ assert.equal(root.tree(), expected);
 
 // functional behavior of `children`
 
-bind(parent, 'children', function() {
+parent.bind('children', function() {
   return [ 
     box({ id: 'ch1' }),
     box({ id: 'ch2' }),

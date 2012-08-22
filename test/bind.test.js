@@ -36,7 +36,6 @@ assert.equal(watch_x.called[0].curr, 5);
 var watch_foo_1 = {};
 obj.watch('foo', watch_callback('watch_foo_1', watch_foo_1));
 
-
 bind.tick();
 assert(watch_foo_1.called);
 assert.equal(watch_foo_1.called.length, 1);
@@ -246,19 +245,52 @@ assert.equal(froo_watch.called.length, 2);
 assert.equal(froo_watch.called[1].curr, 1);
 assert.equal(froo_watch.called[1].prev, 0);
 
-// literals can change of course
+// literals can change without a tick (still, watcher will not be notified)
 obj.fraa = 6;
 assert.equal(obj.fraa, 6);
+assert.equal(froo_watch.called.length, 2);
 obj.fraa = 7;
 assert.equal(obj.fraa, 7);
+assert.equal(froo_watch.called.length, 2);
 bind.tick();
 assert.equal(obj.fraa, 7);
+assert.equal(froo_watch.called.length, 2);
 obj.fraa = 8;
 assert.equal(obj.fraa, 8);
+assert.equal(froo_watch.called.length, 2);
 
-// change the compare function
-//obj.compare('foo', function(curr, prev) { return curr == prev + 1; });
+// synchronous watch: a special case of watch that calls the callback
+// on the same tick instead of the next tick. this can be used for state mutations.
+var joo_watch = {};
+obj.joo = 5;
+obj.watch('joo', watch_callback('joo_watch', joo_watch), true);
+assert(joo_watch.called);
+assert(joo_watch.called.length === 1);
+assert.equal(joo_watch.called[0].curr, 5);
+assert.equal(joo_watch.called[0].prev, undefined);
+assert.equal(joo_watch.called[0].prop, 'joo');
+assert.equal(joo_watch.called[0].is_bound, false);
+obj.joo = 10;
+assert(joo_watch.called.length === 2); // callback called with no tick
+assert.equal(joo_watch.called[1].curr, 10);
 
+// synchronous watch when bound to function
+var yoo_watch = {};
+obj.bind('yoo', function() { return obj.joo; });
+obj.watch('yoo', watch_callback('yoo_watch', yoo_watch), true);
+assert(yoo_watch.called);
+assert.equal(yoo_watch.called.length, 1);
+assert.equal(yoo_watch.called[0].curr, obj.joo);
+assert.equal(yoo_watch.called[0].prev, undefined);
+assert.equal(yoo_watch.called[0].is_bound, true);
+obj.joo = 999;
+assert.equal(obj.yoo, 10); // before tick value is frozen
+assert.equal(yoo_watch.called.length, 1);
+bind.tick(); // let new value propagate
+assert.equal(obj.yoo, 999); // consume `yoo`, sync watch should be called without a tick
+assert.equal(yoo_watch.called.length, 2);
+assert.equal(yoo_watch.called[1].curr, obj.joo);
+assert.equal(yoo_watch.called[1].prev, 10);
 
 return;
 
