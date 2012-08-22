@@ -57,8 +57,8 @@ assert.equal(watch_foo_2.called[0].prop, 'foo');
 assert.equal(watch_foo_2.called[0].is_bound, true);
 
 // bind to a function that changes values.
-var i = 788;
-obj.bind('foo', function() { return i++; });
+var foo_value = 788;
+obj.bind('foo', function() { return foo_value; });
 bind.tick();
 
 // nobody retrieved `foo`s value, so no watchers are notified
@@ -66,9 +66,8 @@ assert.equal(watch_foo_1.called.length, 1);
 assert.equal(watch_foo_2.called.length, 1);
 
 // now consume `foo` 3 times and expect all watchers to be notified
-obj.foo;
-obj.foo;
-obj.foo;
+foo_value++; obj.foo;
+foo_value++; obj.foo;
 assert.equal(watch_foo_1.called.length, 1); // no change before tick
 assert.equal(watch_foo_2.called.length, 1);
 bind.tick();
@@ -88,15 +87,16 @@ assert.equal(watch_foo_1.called.length, 2);
 assert.equal(watch_foo_2.called.length, 2);
 assert(!watch_foo_3.called); // no callback before tick
 bind.tick();
-assert.equal(watch_foo_3.called.length, 1);
 assert.equal(watch_foo_1.called.length, 2); // notification triggered only on next-tick
 assert.equal(watch_foo_2.called.length, 2); // notification triggered only on next-tick
+assert.equal(watch_foo_3.called.length, 1);
 bind.tick();
 assert.equal(watch_foo_1.called.length, 3);
 assert.equal(watch_foo_2.called.length, 3);
 assert.equal(watch_foo_3.called.length, 1);
 
 // foo remains a property after assigning it with literals
+bind.tick();
 obj.foo = 89;
 bind.tick();
 assert(obj.foo === 89);
@@ -146,6 +146,7 @@ obj.zoo = 5;
 bind.tick();
 assert.equal(zoo_changed.called.length, 2);
 assert.equal(zoo_changed.called[1].curr, 5);
+assert.equal(zoo_changed.called[1].curr_on_obj, 5);
 assert.equal(zoo_changed.called[1].prev, undefined);
 
 // setting to the same value => cb isn't called
@@ -183,6 +184,7 @@ bind.tick();
 assert(poo_watch.called);
 assert.equal(poo_watch.called.length, 1);
 assert.equal(poo_watch.called[0].curr, 4);
+assert.equal(poo_watch.called[0].curr_on_obj, 4);
 assert.equal(poo_watch.called[0].prev, undefined);
 assert.equal(poo_watch.called[0].is_bound, false);
 
@@ -388,12 +390,23 @@ obj.foo = bind(obj, 'foo', function() { return 88 });
 // -- helpers
 
 function watch_callback(name, result) {
+  result.toString = function() {
+    if (!this.called) return '<not called>';
+    else {
+      var s = '';
+      this.called.forEach(function(invoke) {
+        s += invoke.prop + ': ' + invoke.prev + ' ==> ' + invoke.curr + '\n';
+      });
+      return s;
+    }
+  };
   return function(curr, prev, prop, is_bound) {
     if (debug) console.log(name, 'called with curr=' + curr, 'and prev=' + prev);
     result.called = result.called || [];
     result.called.push({
       self: this,
       curr: curr,
+      curr_on_obj: this[prop],
       prev: prev,
       prop: prop,
       is_bound: is_bound
