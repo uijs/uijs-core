@@ -4,6 +4,9 @@ var debug = false;
 
 var EventEmitter = require('..').events.EventEmitter;
 
+//TODO: Add a test for having a watch callback touching the getter whose change triggered the cb and see that we dont have an endless loop
+// of getter -> cb -> getter -> cb ... Check both for sync and async watchers 
+
 // play around with some usage options
 
 // create a 'bind promise' and assign it in the object literal later.
