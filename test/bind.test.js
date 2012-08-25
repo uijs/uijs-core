@@ -296,6 +296,20 @@ obj.fraa = 8;
 assert.equal(obj.fraa, 8);
 assert.equal(froo_watch.called.length, 2);
 
+// test not watched, but bound scenario
+var fnoo = 0;
+obj.bind('fnoo', function() { return fnoo; });
+assert.equal(obj.fnoo, 0);
+fnoo = 1;
+assert.equal(obj.fnoo, 0);
+bind.tick();
+assert.equal(obj.fnoo, 1);
+assert.equal(obj.fnoo, 1);
+fnoo = 2;
+bind.tick();
+assert.equal(obj.fnoo, 2);
+assert.equal(obj.fnoo, 2);
+
 // synchronous watch: a special case of watch that calls the callback
 // on the same tick instead of the next tick. this can be used for state mutations.
 var joo_watch = {};
