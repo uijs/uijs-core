@@ -31,8 +31,9 @@ f.on('load', function(div) {
       duration: 5000,
       curve: easing[select.value],
       ondone: function() {
+        console.log('...and back');
         b.animate({ x: 0 }, {
-          duration: 5000,
+          duration: 500,
           curve: easing[select.value]
         });
       },
