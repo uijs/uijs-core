@@ -11,16 +11,27 @@ function rect(options) {
     label: false,
     touching: false,
     points: [],
+    invalidators: ['points', 'touching', 'label', 'color'],
+    useBuffer: true,
   });
 
   var obj = box(options);
 
   var marker_delta = Math.round(Math.random() * 100) % 10 - 5;
 
+  obj.onCalculate = function (){
+
+  }
+
+  obj.onSetContext = function(ctx){
+    
+  }
+
   obj.ondraw = function(ctx) {
     ctx.fillStyle = this.color;
     ctx.shadowBlur = 20.0;
     ctx.shadowColor = 'black';
+    
     ctx.fillRect(0,0,this.width,this.height);
 
     ctx.fillStyle = 'black';
@@ -66,6 +77,7 @@ function rect(options) {
     if (!pt || !pt.x || !pt.y) return;
     this.points.push(pt);
     if (this.points.length > 10) this.points.shift();
+    this.points = this.points.concat();
   }
 
   obj.on('touchstart', function(pt) {

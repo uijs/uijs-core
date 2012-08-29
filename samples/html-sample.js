@@ -18,11 +18,19 @@ var app = box({
 
     return sel.options[sel.selectedIndex].value;
   }),
+  invalidators: ['color'],
 });
+
+app.onCalculate = function (){
+
+}
+
+app.onSetContext = function(ctx){
+  ctx.fillStyle = this.color;
+}
 
 app.ondraw = function(ctx) {
   // just fill with `color()`.
-  ctx.fillStyle = this.color;
   ctx.fillRect(0,0,this.width, this.height);
 };
 

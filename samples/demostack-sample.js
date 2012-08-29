@@ -15,18 +15,24 @@ var b2 = box({
   title: 'ThE crazy snake',
   height: bind(function() { return this.parent.height - this.y; }),
   dropVelocity: -3.8,
+  points: [],
+  touching: false,
+  invalidators: ['points', 'touching'],
 });
 
 app.add(b1);
 app.add(b2);
+b1.onCalculate = function (){
+
+}
+
+b1.onSetContext = function(ctx){
+  ctx.fillStyle = 'black';
+}
 
 b1.ondraw = function(ctx) {
-  ctx.fillStyle = 'black';
   ctx.fillText('This is demo box number 1. There are no options for it', 10, 20);
 };
-
-var points = [];
-var touching = false;
 
 var palette = [
   '#BF0C43',
@@ -40,17 +46,26 @@ var total_points = 0;
 var touch_end = 0;
 var points_to_keep = 50;
 
-b2.ondraw = function(ctx) {
-  var self = this;
-  if (points.length === 0) return;
+b2.onCalculate = function (){
+
+}
+
+b2.onSetContext = function(ctx){
   ctx.lineCap = 'butt';
   ctx.lineWidth = 10;
+}
 
+b2.ondraw = function(ctx) {
+  var self = this;
+  var points = self.points;
+  if (points.length === 0) return;
+  
   var alpha = 0.0;
   dt = (Date.now() - touch_end) / 1000.0;
 
   ctx.beginPath();
   ctx.moveTo(points[0].x, points[0].y);
+  var keep_drawing = false;
   points.forEach(function(pt, i) {
     if (i === 0) return;
     ctx.lineTo(pt.x, pt.y);
@@ -60,31 +75,38 @@ b2.ondraw = function(ctx) {
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(pt.x, pt.y);
-    if (!touching) {
+    if (!self.touching) {
       pt.y = (points.length - i - self.dropVelocity) + pt.y + 12.8 * dt * dt;
     }
+    if(pt.y <= self.height){
+      keep_drawing = true;
+    }
   });
+  if(keep_drawing){
+    self.points = points.concat(); // to keep the control invalid
+  }
 };
 
 b2.on('touchstart', function() {
-  touching = true;
+  b2.touching = true;
   touch_end = 0;
-  points = [];
+  b2.points = [];
   this.startCapture();
 });
 
 b2.on('touchmove', function(pt) {
-  if (!touching) return;
-  points.push({
+  if (!b2.touching) return;
+  b2.points.push({
     x: pt.x,
     y: pt.y,
     color: palette[(total_points++) % palette.length]
   });
-  if (points.length > points_to_keep) points.shift();
+  if (b2.points.length > points_to_keep) b2.points.shift();
+  b2.points = b2.points.concat(); // to invalidate the box
 });
 
 b2.on('touchend', function() {
-  touching = false;
+  b2.touching = false;
   touch_end = Date.now();
   this.stopCapture();
 });

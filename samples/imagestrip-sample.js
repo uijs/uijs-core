@@ -10,16 +10,18 @@ var app = box({
 
 var firstTime = true;
 
+app.onCalculate = function (){
+
+}
+
+app.onSetContext = function(ctx){
+  ctx.fillStyle = 'blue';
+}
+
 app.ondraw = function(ctx){
   var self = this;
-  if (firstTime){
-  	ctx.fillStyle = 'blue';
-  	ctx.fillRect(0, 0, self.width, self.height);
-  	firstTime = false;
-  }
+  ctx.fillRect(0, 0, self.width, self.height);
 };
-
-app.clip = true;
 
 var car = carousel({
   images: images.map(function(url) {

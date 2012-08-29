@@ -28,11 +28,14 @@ module.exports = function(options) {
     }),
   });
 
+  var i = 0;
   var imageStrip = box({
     images: options.images,
     fillStyle: 'black',
     width: bind(positioning.parent.width()),
-    height: 100
+    height: 100,
+    invalidators: ['invalidator'],
+    invalidator: bind(function() { return i++; }),
   });
 
   imageStrip.last_x = 0;
@@ -237,28 +240,29 @@ module.exports = function(options) {
 
   imageStrip.createBuffer();
 
+  blackStrip.onCalculate = function (){
+
+  }
+
+  blackStrip.onSetContext = function(ctx){
+
+  }
+
   blackStrip.ondraw = function(ctx) {
     var self = this;
     ctx.fillRect(0, 0, self.width, self.height);
   };
 
-  var ts = 0;
-  var frames = 0;
+  imageStrip.onCalculate = function (){
+
+  }
+
+  imageStrip.onSetContext = function(ctx){
+
+  }
   
   imageStrip.ondraw = function(ctx) {
     var self = this;
-    var newTime = Date.now();
-    frames++;
-    if (ts == 0) {
-      ts = Date.now();
-    }
-    else{
-      if ((newTime - ts) > 1000) {
-        console.log("fps: " + frames);
-        frames = 0;
-        ts = newTime;
-      };
-    };
     
     self.createBuffer();
     ctx.drawImage(self.imageStripBuff, 0, 0);
