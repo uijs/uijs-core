@@ -16,6 +16,14 @@ function label(options) {
     width: bind(positioning.parent.width()), 
   }));
   obj._is_adornment = true;
+  obj.onCalculate = function (){
+
+  }
+
+  obj.onSetContext = function(ctx){
+    
+  }
+
   obj.ondraw = function(ctx) {
 
     var lineHeight = this.lineHeight;
@@ -62,10 +70,17 @@ module.exports = function(options) {
     height: 0,
   }));
 
-  options_box.ondraw = function(ctx) {
+  options_box.onCalculate = function (){
+
+  }
+
+  options_box.onSetContext = function(ctx){
     ctx.fillStyle = 'white';
     ctx.shadowBlur = 20;
     ctx.shadowColor = 'black';
+  }
+
+  options_box.ondraw = function(ctx) {
     ctx.fillRect(0, 0, this.width, this.height);
   };
 
@@ -80,8 +95,15 @@ module.exports = function(options) {
     options_box.bind('height', animate(currh, 0));
   };
 
-  content.ondraw = function(ctx) {
+  content.onCalculate = function (){
+
+  }
+
+  content.onSetContext = function(ctx){
     ctx.fillStyle = 'white';
+  }
+
+  content.ondraw = function(ctx) {
     ctx.fillRect(0, 0, this.width, this.height);
   };
 
@@ -134,8 +156,15 @@ module.exports = function(options) {
     return child;
   };
 
-  obj.ondraw = function(ctx) {
+  obj.onCalculate = function (){
+
+  }
+
+  obj.onSetContext = function(ctx){
     ctx.fillStyle = this.backgroundColor;
+  }
+
+  obj.ondraw = function(ctx) {
     ctx.fillRect(0, 0, this.width, this.height);
   };
 

@@ -12,6 +12,14 @@ function rect(options) {
   var state = 'top';
   var size = 5;
 
+  obj.onCalculate = function (){
+
+  }
+
+  obj.onSetContext = function(ctx){
+
+  }
+
   obj.ondraw = function(ctx) {
     for (var i = 0; i < 100000; ++i) {
       Math.pow(i, 5);

@@ -11,15 +11,23 @@ function stripes() {
     interaction: false,
   });
 
+  obj.onCalculate = function (){
+
+  }
+
+  obj.onSetContext = function(ctx){
+    ctx.strokeStyle = 'black';
+    ctx.font = '20px Helvetica';
+  }
+
   obj.ondraw = function(ctx) {
     ctx.fillStyle = 'gray';
     ctx.fillRect(0, 0, this.width, this.height);
     var curr_y = 0;
     var h = 100;
 
-    ctx.strokeStyle = 'black';
     ctx.fillStyle = 'blue';
-    ctx.font = '20px Helvetica';
+    
     var i = 0;
     while (curr_y < this.height) {
       ctx.strokeRect(0, curr_y, this.width, h);

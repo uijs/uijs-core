@@ -10,6 +10,14 @@ var iphone = box({
     height: 480 - 20 - 10,
 });
 
+iphone.onCalculate = function (){
+
+}
+
+iphone.onSetContext = function(ctx){
+    
+}
+
 iphone.ondraw = function(ctx) {
     ctx.fillStyle = 'red';
     ctx.fillRect(0, 0, this.width, this.height);
