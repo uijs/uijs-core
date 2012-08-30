@@ -16,12 +16,12 @@ A box is created by calling `box(options)`. The return value is a box. `options`
 
 Example:
 
-    var box = require('uijs').box;
+    var uijs = require('uijs');
     
-    var mybox = box({
-        x: constant(10),
-        y: constant(20),
-        alpha: constant(0.5),
+    var mybox = uijs.box({
+        x: 10,
+        y: 20,
+        alpha: 0.5,
     });
 
 
@@ -31,6 +31,7 @@ The base box has the following attributes and defaults:
 
  * `x`, `y`, `width`, `height` - `Number`s for origin and 
     size (default `0,0-100x100`).
+ * `children` - an `Array` of child boxes.
  * `visible` - `Boolean` indicating if this box is visible (default `true`).
  * `rotation` - `Number` for rotation of the box in radians (default `0.0`).
  * `alpha` - `Number` for opacity. 
@@ -44,29 +45,31 @@ The base box has the following attributes and defaults:
     propagated to child boxes automatically (default `true`).
  * `id` - an identifier for the box (optional). Can be used by `box.get()` and
     `box.query()` later to find the box within the hierarchy.
+ * `invalidators` - An `Array` of properties that invalidate the box's appearance. Invalidators are used
+    for optimizing box rendering. See more info TBD.
  * `ondraw` - a `function(ctx)` called to draw the contents of the box 
     (default `null`).
  * `debug` - will output `console.log` output for every interaction event.
     
-### box.properties
+## Binding
 
- > TODO
+A box is an object that supports binding using the uijs binding system. See the [binding documentation](binding.md) for more info on binding functions to any property and watching for changes.
 
-### box.properties.onchange(prop, fn)
+Essentially, this means boxes have:
 
- > TODO
+ * `box.bind(attr, fn)` - binds the property `attr` to the values returned by calling the function `fn`.
+ * `box.watch(attr, cb)` - Calls `cb` every time the value returned from `box[attr]` changes.
 
 ## Events
 
-See the [events.EventEmitter](#events.md) module for details on how to emit and subscribe to events.
+A box is also an [`EventEmitter`](#events.md). It emits events and one can subscribe to be called back on events.
 
- * `touchstart`, `touchmove`, `touchend` with `function(e)` - Interaction events where 
-   `e.x` and `e.y` are local coordinates.
- * `frame` with `function()`. Called on every drawing frame. Can be used to 
-    manipulate external objects via diffs.
- * `child` with `function(child)`. Called every time a child is added to the
-    box.
+Essentially, this means boxes have:
 
+ * `box.on(event, cb)` - calls `cb` every time the event `event` is emitted.
+ * `box.emit(event, ...)` - emits the event `event` to all subscribers.
+
+`EventEmitter` has some more useful functions. Check them out.
 
 ## Drawing
 
@@ -315,46 +318,22 @@ may return `false` to filter out a child from the search (e.g. filter out childr
 
 _Usually this is called by the system._
 
-## Properties
-
-A box supports a few useful capabilities related to properties.
-
-### box.properties
-
-An `Array` that contains the names of all the properties defined while the box
-was initialized. This can be useful to reflect on the box's properties, serialize them, etc.
-
-Example:
-
-    > var mybox = box();
-    > mybox.properties
-    [ 'x',
-      'y',
-      'width',
-      'height',
-      'rotation',
-      'visible',
-      'clip',
-      'alpha',
-      'debug',
-      'interaction',
-      'autopropagate',
-      'id' ]
-
 ## Animation
 
 It is easy to animate any box property using the `box.animate` function.
 
 ### box.animate(properties, options)
 
-Where `properties` is a hash of property value targets and `options` are options
-passed to the various animation functions.
+ * `properties` are a hash of property names and target values.
+ * `options.duration` is duration of the animation (in ms). Default is 500ms.
+ * `options.curve` is the curve function to use. The `uijs.easing` module contains many types of easing functions from [Robert Penner](http://robertpenner.com/easing).
+ * `options.ondone` is called when the animation completes.
 
 For example:
 
     var mybox = box({ x: 0, y: 0 });
 
-    mybox.on('click', function() {
+    mybox.on('touchstart', function() {
       mybox.animate({ x: 100, y: 100 });
     });
 

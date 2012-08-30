@@ -16,6 +16,8 @@ This repository contains only the uijs __core__ module. It consists only of the 
 
 # Installing
 
+ > NOTE: since the project is not yet published into __npm__, the following will not work. Just clone the repositories into your local machine and then use `npm install` (or `npm link`) to refer to the local copy of the repository instead of the one published into npm.
+
 To get started first installl the [development tools](https://github.com/eladb/uijs-devtools) globally:
 
     $ npm install -g uijs-devtools
@@ -25,52 +27,57 @@ Now, create a directory for your app/module and install uijs there:
     $ cd hello-uijs
     $ npm install uijs
     
-This will create a `node_modules/uijs` directory with the uijs core module.
+> Instead of using `npm install` you can use `npm link` to reference a local copy of a the `uijs` module. Git clone [https://github.com/eladb/uijs](https://github.com/eladb/uijs) into a local directory, run `npm link` within that directory and then you can use `npm link uijs` to install the `uijs` module as a link. You will see that `node_modules/uijs` will be a symlink instead of a real directory.
+    
+This will create a `node_modules/uijs` directory (or link) with the uijs core module.
+
+Now, install the [controls repository](https://github.com/eladb/uijs-controls):
+
+    $ cd hello-uijs
+    $ npm install uijs-controls
+
+> `npm link` will work well here as well.
 
 # Hello, uijs!
 
-uijs apps/modules are CommonJS libraries (`require()`) that export a uijs [box](#box). A box is a visual rectanglurly-bound element that can draw itself and may have child boxes. In uijs everything is a box.
+__uijs__ apps/modules are CommonJS libraries (`require`, `module.exports`) that export a uijs [box](#box). A box is a visual rectanglurly-bound element that can draw itself and may have child boxes. In uijs everything is a box.
 
 Let's create a simple box that prints 'hello, uijs!'.
 
 Create a file named `hello.js`:
 
     var uijs = require('uijs');
-    var box = uijs.box;
-    
-    var app = box();
-    
-    app.ondraw = function(ctx) {
-    
-        // fill the box
-        ctx.fillStyle = '#1C8BDC';
-        ctx.fillRect(0, 0, this.width, this.height);
-    
-        // draw text
-        ctx.fillStyle = 'white';
-        ctx.shadowBlur = 5;
-        ctx.shadowColor = 'black';
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 2;
-        ctx.lineWidth = 2;
-        ctx.font = '50px Helvetica';
-        ctx.fillText('Hello, uijs!', 100, 100);
-        
-    };
-    
+    var controls = require('uijs-controls');
+
+    var app = uijs.box();
+
+    app.add(controls.label({
+      x: 10, y: 10, width: 200, height: 50,
+      text: 'Hello, uijs!',
+      color: '#1c8bdc',
+      size: 30,
+      bold: true,
+      shadowColor: '#ccc',
+      shadowOffsetX: 2,
+      shadowOffsetY: 2,
+      shadowBlur: 5,
+    }));
+
     module.exports = app;
 
-We create a box by calling `box()` and set it's `ondraw` function to use `ctx` (which is simply a [CanvasRenderingContext2D](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasrenderingcontext2d)) to print the text "Hello, uijs" at 100, 100 (relative to the box's origin).
+Basically what we did here is create an app box with a single child label (which is also a box). The label box has some properties like bounds (`x`, `y`, `width` and `height`), which is common to all boxes and some label-specific properties (`text`, `color`, etc). The function `box.add(child)` is used to add a child box to the app.
 
-# Building
+Notice that we do not specify any bounds for the app because by default it will be stretched to fill the entire browser window.
 
-Now, let's build and open this app.
+## Building
+    
+Now, build and open the resulting html file:
 
     $ uijs build hello.js
     dist/hello.uijs.js created
     dist/hello.uijs.html created
 
-> `uijs` is the entry point for the development tools. We use the `build` command, passing it `hello.js` as the input. Use `uijs -h` for usage.
+The `uijs` program is the entry point for the development tools. We use the `build` command, passing it `hello.js` as the input. Use `uijs -h` for usage.
 
 `build` created two outputs: `dist/hello.uijs.js` and `dist/hello.uijs.html`:
 
@@ -81,14 +88,14 @@ Now, let's build and open this app.
    embedded and contains the uijs [bootstrapping](#bootstrap) code. In most 
    cases, you will only need this file to serve your app to clients via CDN or 
    some other static file server.
-   
+
 Open `dist/hello.uijs.html` with a web browser and you should see something like this:
 
-![image](doc/hellouijs.png)
+![image](doc/hello1.png)
 
 Yeah!
 
-# Working iteratively
+## Working iteratively
 
 Passing `-w` to `uijs build` will start a file watch on the directory and automatically rebuild when your code changes, so you can work iteratively and refresh the browser window.
 
@@ -104,7 +111,27 @@ Passing `-w` to `uijs build` will start a file watch on the directory and automa
     
 Pretty useful!
 
-# Running on a mobile device
+## Binding
+
+One of uijs's freakingly awesome features is it's binding system. You can read more about it [here](doc/binding.md). Simply put, you can `bind` any box property to a function and `watch` any property for changes (even if they are bound to functions (hell, yeah!)).
+
+Let's edit `hello.js` and bind the label's text to something useful:
+
+Replace this:
+
+      text: 'Hello, uijs!',
+
+With this:
+
+      text: uijs.bind(function() { return window.innerWidth + 'x' + window.innerHeight; }),
+
+Now you should see something like this:
+
+![image](doc/hello2.png)
+
+If you change the browser window dimensions, you should see these values change.
+
+## Running on a mobile device
 
 uijs is all about mobile apps, so we made it super easy to serve your app for development and access it through the local network via your mobile browser.
 

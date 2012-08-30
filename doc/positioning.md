@@ -7,29 +7,31 @@ It exports two types of functions:
  1. __Attribute functions__ : `top`, `left`, `width`, `height`, `right`, `bottom`, `centerx`, `centery`
  2. __Relation functions__: `parent.xxx`, `prev.xxx` where `xxx` is one of the attribute function.
 
-A common usage would be to assign one of the relation functions to a box's attribute
+A common usage would be to bind one of the relation functions to a box's attribute
 so that it will be positioning in relation to it's parent box or some sibling.
 For example:
 
+	var box = uijs.box;
 	var positioning = uijs.positioning;
+	var bind = uijs.bind;
 	
 	box({
-	  width: constant(300),
-	  height: constant(300),
+	  width: 300,
+	  height: 300,
 	  children: [
 	    box({
-	      id: c('#b1'),
-	      x: positioning.prev.x(),
-	      y: positioning.prev.bottom(+5)
-	      width: positioning.parent.width(),
-	      height: constant(100),
+	      id: '#b1',
+	      x: bind(positioning.prev.x()),
+	      y: bind(positioning.prev.bottom(+5))
+	      width: bind(positioning.parent.width()),
+	      height: 100,
 	    }),
 	    box({
-	      id: c('#b2'),
-	      x: positioning.prev.x(),
-	      y: positioning.prev.bottom(+5)
-	      width: positioning.parent.width(),
-	      height: constant(150),
+	      id: '#b2',
+	      x: bind(positioning.prev.x()),
+	      y: bind(positioning.prev.bottom(+5)),
+	      width: bind(positioning.parent.width()),
+	      height: 150,
 	    }),
 	]})
 
@@ -86,10 +88,10 @@ attribute of the passed in `box` (with an optional delta value).
 Example:
 
     var mybox = box({
-        x: constant(40),
-        y: constant(50),
-        width: constant(100),
-        height: constant(200),
+        x: 40,
+        y: 50,
+        width: 100,
+        height: 200,
     });
     
     assert(positioning.left(mybox)() === 40); // notice the function call
@@ -113,8 +115,8 @@ current right coordinate of the box's parent.
 Example:
 
     // put `mybox` at the center of it's parent
-    mybox.x = positioning.parent.centerx();
-    mybox.y = positioning.parent.centery();
+    mybox.bind('x', positioning.parent.centerx());
+    mybox.bind('y', positioning.parent.centery());
 
 
 ### positioning.prev.{ left | top | . . . }([delta])
@@ -127,7 +129,7 @@ the "previous" (non existing) child. See the example above for an example.
 Example:
 
     // put `mybox` 5 pixels south of the previous child
-    mybox.y = positioning.prev.bottom(+5);
+    mybox.bind('y', positioning.prev.bottom(+5));
 
 ### positioning.relative(id).{ left | top | . . . }([delta])
 
@@ -136,8 +138,8 @@ Returns an attributed positional `function()` bound to a relative with ID `id`.
 Example:
 
     box({
-      box({ id: constant('#hello') }),
-      box({ x: positioning.relative('#hello').bottom() )})
+      box({ id: '#hello' }),
+      box({ x: bind(positioning.relative('#hello').bottom()) )})
     });
 
 This will cause the 2nd child to be located at the bottom of the first child.

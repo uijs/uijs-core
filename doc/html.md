@@ -28,9 +28,9 @@ This is the preferred way to manipulate and maintain the inner HTML content.
 Example:
 
     var mybox = html();
-    mybox.onload = function(container) {
+    mybox.on('load', function(container) {
         container.innerHTML = '<h4>This is my box</h4>';
-    };
+    });
     
 
 ### html.container
