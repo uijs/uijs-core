@@ -16,6 +16,8 @@ This repository contains only the uijs __core__ module. It consists only of the 
 
 # Installing
 
+[Here](https://gist.github.com/3566988)'s a gist with a simple install script and a hello world.
+
  > NOTE: since the project is not yet published into __npm__, the following will not work. Just clone the repositories into your local machine and then use `npm install` (or `npm link`) to refer to the local copy of the repository instead of the one published into npm.
 
 To get started first installl the [development tools](https://github.com/eladb/uijs-devtools) globally:
