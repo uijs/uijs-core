@@ -34,6 +34,9 @@ function rect(options) {
     
     ctx.fillRect(0,0,this.width,this.height);
 
+    ctx.fillStyle = 'black';
+    ctx.fillText(this._id, 3, this.height - 3);
+
     if (this.label) {
       ctx.fillStyle = 'black';
       ctx.shadowBlur = 0;
@@ -183,5 +186,10 @@ help.onload = function(container) {
     'in effect as long as the box as the capture.</p>',
   ].join('\n');
 };
+
+app.on('touchstart', function(e) {
+  boxes = app.hittest(e);
+  console.log('hit boxes:', Object.keys(boxes));
+});
 
 module.exports = app;

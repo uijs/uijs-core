@@ -71,22 +71,37 @@ assert.deepEqual(child1.screen(), { x: 15, y: 15 });
 assert.deepEqual(child2.screen(), { x: 15, y: 75 });
 assert.deepEqual(grandchild.screen(), { x: 25, y: 85 });
 
-// box.hittest(pt) -> { child, child_pt }
+// single box hit test (private api)
+// box._hittest(pt) -> { child, child_pt }
 
 // point is on the root surface, so no child is hit
-assert.deepEqual(app.hittest({ x: 6, y: 6 }), null);
+assert.deepEqual(app._hittest({ x: 6, y: 6 }), null);
+assert.deepEqual(hit({ x: 6, y: 6 }), [ '#root' ]);
+
+// point is within child1
+assert.deepEqual(app._hittest({ x: 15, y: 15 }), { child: child1, child_pt: { x: 5, y: 5 } });
+assert.deepEqual(hit({ x: 15, y: 15 }), [ '#root', '#child1' ]);
 
 // point is within child2
-assert.deepEqual(app.hittest({ x: 15, y: 15 }), { child: child1, child_pt: { x: 5, y: 5 } });
-
-// point is within child3
-assert.deepEqual(app.hittest({ x: 15, y: 75 }), { child: child2, child_pt: { x: 5, y: 5 } });
+assert.deepEqual(app._hittest({ x: 15, y: 75 }), { child: child2, child_pt: { x: 5, y: 5 } });
+assert.deepEqual(hit({ x: 15, y: 75 }), [ '#root', '#child2' ]);
 
 // point is within child3/grandchild, but we hit child2 because he is the child
-assert.deepEqual(app.hittest({ x: 22, y: 82 }), { child: child2, child_pt: { x: 12, y: 12 } });
+assert.deepEqual(app._hittest({ x: 22, y: 82 }), { child: child2, child_pt: { x: 12, y: 12 } });
+assert.deepEqual(hit({ x: 22, y: 82 }), [ '#root', '#child2' ]);
 
 // we hit child3 because it covers child2
-assert.deepEqual(app.hittest({ x: 35, y: 35 }), { child: child3, child_pt: { x: 5, y: 5 } });
+assert.deepEqual(app._hittest({ x: 35, y: 35 }), { child: child3, child_pt: { x: 5, y: 5 } });
+assert.deepEqual(hit({ x: 35, y: 35 }), [ '#root', '#child1' ]);
+
+// recursive hit test (public api)
+// box.hittest(pt) -> { _id: { child, child_pt }, ... }
+function hit(pt) {
+  var hits = app.hittest(pt);
+  return Object.keys(hits).map(function(_id) {
+    return hits[_id].child.id;
+  });
+}
 
 // box.interact(event, pt)
 app.interact('E1', { x: 6, y: 6 });
