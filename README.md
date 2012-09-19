@@ -1,5 +1,7 @@
 A web UI system for real mobile apps.
 
+[![Build Status](https://secure.travis-ci.org/uijs/uijs-core.png)](http://travis-ci.org/uijs/uijs-core)
+
 [Stability](http://nodejs.org/api/documentation.html#documentation_stability_index): 1 - Experimental
 
 # Goal
