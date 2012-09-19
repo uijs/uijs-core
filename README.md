@@ -156,6 +156,8 @@ Since we used `-w`, the file watch will also work in this mode.
 
 ## Tests
 
+To run visual tests, you will have to install [cairo](http://cairographics.org/). On a mac with [homebrew](http://mxcl.github.com/homebrew/) just type `brew install cairo`.
+
 `npm test` will run all tests. These are the regression tests that should be executed before commiting code into the repository.
 
 We have two types of tests:
