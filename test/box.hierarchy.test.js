@@ -15,9 +15,9 @@ var bind = uijs.bind;
 
 */
 
-var parent = box();
-var child1 = box();
-var child2 = box();
+var parent = box({ id: 'parent' });
+var child1 = box({ id: 'child1' });
+var child2 = box({ id: 'child2' });
 var grandchild1 = box();
 
 // create tree (tests box.add())
