@@ -357,6 +357,11 @@ assert.equal(voo_1_watch.called.length, 1); // first for the initial watch...
 bind.tick();
 assert.equal(voo_1_watch.called.length, 2); // ..second for the `++`.
 
+// allow calling bind() with $bind
+var bindings = bind(function() { return 'your the man'; });
+obj.bind('zoko', bindings);
+assert.equal(obj.zoko, 'your the man');
+
 return;
 
 // -- delete this after the $motherfucker marker is no longer needed to detect misuse of `bind`.
