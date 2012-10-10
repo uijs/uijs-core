@@ -69,7 +69,6 @@ var grandchild = child2.add(polish_box({
 
 // box.screen
 tick();
-tick();
 assert.deepEqual(app.screen, { x: 5, y: 5 });
 assert.deepEqual(child1.screen, { x: 15, y: 15 });
 assert.deepEqual(child2.screen, { x: 15, y: 75 });
