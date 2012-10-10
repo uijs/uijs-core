@@ -1,6 +1,8 @@
 var assert = require('assert');
 var uijs = require('..');
 var box = uijs.box;
+var bind = uijs.bind;
+var tick = bind.tick;
 
 var queue = [];
 
@@ -65,11 +67,13 @@ var grandchild = child2.add(polish_box({
   interaction: true,
 }));
 
-// box.screen()
-assert.deepEqual(app.screen(), { x: 5, y: 5 });
-assert.deepEqual(child1.screen(), { x: 15, y: 15 });
-assert.deepEqual(child2.screen(), { x: 15, y: 75 });
-assert.deepEqual(grandchild.screen(), { x: 25, y: 85 });
+// box.screen
+tick();
+tick();
+assert.deepEqual(app.screen, { x: 5, y: 5 });
+assert.deepEqual(child1.screen, { x: 15, y: 15 });
+assert.deepEqual(child2.screen, { x: 15, y: 75 });
+assert.deepEqual(grandchild.screen, { x: 25, y: 85 });
 
 // single box hit test (private api)
 // box._hittest(pt) -> { child, child_pt }

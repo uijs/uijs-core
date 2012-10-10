@@ -3,6 +3,7 @@ var uijs = require('..');
 var positioning = uijs.positioning;
 var box = uijs.box;
 var bind = uijs.bind;
+var tick = bind.tick;
 
 // attributes
 
@@ -29,6 +30,7 @@ var c1 = b1.add(box({
   height: bind(positioning.parent.height(+10)),
 }));
 
+tick();
 assert.equal(c1.x, 50 + 123 + 5);
 assert.equal(c1.y, 230 + 555);
 assert.equal(c1.width, 123 - 10);

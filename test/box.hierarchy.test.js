@@ -15,12 +15,14 @@ var bind = uijs.bind;
 
 */
 
-var parent = box();
-var child1 = box();
-var child2 = box();
-var grandchild1 = box();
+var parent = box({ id: 'parent' });
+var child1 = box({ id: 'child1' });
+var child2 = box({ id: 'child2' });
+var grandchild1 = box({ id: 'grandchild1' });
 
 // create tree (tests box.add())
+
+
 assert.ok(parent.children.push(child1));
 assert.ok(parent.add(child2));
 assert.ok(child2.children.push(grandchild1));
